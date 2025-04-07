@@ -1,1 +1,3 @@
 path,name,metadata,description
+location, ACS, data/metadata/ACS.md, American Community Survey data for 2016-2020
+data/raw/public/mappinginequality.gpkg, HOLC Grades, data/metadata/HOLC Grades.md, Historical HOLC grades for inner-city cores.
