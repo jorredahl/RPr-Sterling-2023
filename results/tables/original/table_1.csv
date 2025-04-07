@@ -1,0 +1,13 @@
+﻿Variable,National,Northeast,South,Midwest,West
+Black population percent,0.0044,0.0052,0.0041,0.0036,
+Indigenous population percent,0.0186,0.0643,,0.0289,0.0242
+Asian population percent,-0.0012,0.0014,-0.0136,-0.0029,
+Hispanic or Latino population percent,0.0012,,0.0016,0.0021,0.0028
+Foreign-born population percent,-0.0011,-0.0015,,-0.0006,
+Percent below the poverty line,0.0066,0.0109,0.0024,0.0072,
+Percent of housing units rented,0.017,0.0019,0.0013,0.0025,
+Percent of mobile homes,0.0045,,0.0367,,
+Percent of houses built in 1980 or later,-0.0032,-0.0026,0.0042,-0.0022,
+HOLC B,0.001,0.0598,-0.0532,0.0186,-0.0267
+HOLC C,0.0477,0.1131,-0.0446,0.0599,0.0306
+HOLC D,0.1352,0.1574,0.0523,0.1376,0.2013
