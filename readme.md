@@ -1,51 +1,34 @@
-If you use this template for research, please [cite it](template_reference.bib):
-> Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
-
 # Title of Study
 
 ## Contributors
 
-- First Name Last Name\*, email address, @githubname, ORCID link, affiliated institution(s)
-- First Name Last Name, email address, @githubname, ORCID link, affiliated institution(s)
-
-\* Corresponding author and creator
+- Jorre Dahl, jdahl@middlebury.edu, @jorredahl, Middlebury College
+- Lucas Nerbonne, lnerbonne@middlebury.edu, @lnerbonne, Middlebury College
 
 ## Abstract
 
-Write a brief abstract about your research project.
-If the project is a reproduction or replication study, include the full citation with a statement
-This study is a *reproduction/replication* of:
+This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining":
 
-> citation to prior study
+> Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). [doi.org/10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
 
-A graphical abstract of the study could also be included as an image here.
+This study uses ACS Census data and historical HOLC records of neighborhoods to examine the correlation of historical redlining and current-day access to water in cities. The study uses a binary logistic regression to identify relationships of different demographic and HOLC varaibles to access to water and sewage. The study finds that historically worse HOLC scores were correlated with less access to water in cities across all regions of the United States.
 
 ## Study Metadata
 
-- `Key words`: Comma-separated list of keywords (tags) for searchability. Geographers often use one or two keywords each for: theory, geographic context, and methods.
-- `Subject`: select from the [BePress Taxonomy](http://digitalcommons.bepress.com/cgi/viewcontent.cgi?article=1008&context=reference)
-- `Date created`: date when project was started
-- `Date modified`: date of most recent revision
-- `Spatial Coverage`: Specify the geographic extent of your study. This may be a place name and link to a feature in a gazetteer like GeoNames or OpenStreetMap, or a well known text (WKT) representation of a bounding box.
-- `Spatial Resolution`: Specify the spatial resolution as a scale factor, description of the level of detail of each unit of observation (including administrative level of administrative areas), and/or or distance of a raster GRID size
-- `Spatial Reference System`: Specify the geographic or projected coordinate system for the study
-- `Temporal Coverage`: Specify the temporal extent of your study---i.e. the range of time represented by the data observations.
-- `Temporal Resolution`: Specify the temporal resolution of your study---i.e. the duration of time for which each observation represents or the revisit period for repeated observations
-- `Funding Name`: name of funding for the project
-- `Funding Title`: title of project grant
-- `Award info URI`: web address for award information
-- `Award number`: award number
+- `Key words`: ACS, HOLC Grade, Redlining, Water Access
+- `Subject`: Social and Behavioral Sciences: Geography: Human Geography
+- `Date created`: 4/7/25
+- `Date modified`: 4/7/25
+- `Spatial Coverage`: A collection of inner-city cores with historical HOLC grades that are stored in the University of Richmond Mapping Inequality database. 
+- `Spatial Resolution`: Area-Weighted Census Blocks Clipped by HOLC zone
+- `Spatial Reference System`: WGS84 EPSG:4326
+- `Temporal Coverage`: 2016-2020
+- `Temporal Resolution`: Observations collected yearly
+- `Funding Name`: none
+- `Funding Title`: none
+- `Award info URI`: none
+- `Award number`: none
 
-## Related to
-
-- `OSF Project`:
-- `Pre-analysis Registration`:
-- `Post-analysis Report Registration`:
-- `Preprint`:
-- `Conference Presentation`:
-- `Publication`:
-- `Prior Study`:
-- `...`:
 
 ## Metadata for access
 
@@ -78,5 +61,7 @@ Important local **documents** include:
 
 The [template_readme.md](template_readme.md) file contains more information on the design of this template and references used in the design.
 The [Template_LICENSE](Template_LICENSE) file provides the BSD 3-Clause license for using this template.
-To cite the template, please use [template_reference.bib](template_reference.bib) or:
+
+Template forked from: 
+
 > Kedron, P., & Holler, J. (2023). Template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences. https://doi.org/10.17605/OSF.IO/W29MQ
