@@ -43,7 +43,7 @@ A graphical abstract of the study could also be included as an image here.
 
 ## Original study spatio-temporal metadata
 
-- `Spatial Coverage`: extent of original study
+- `Spatial Coverage`: Specific inner-cities that are included in the MID HOCL Grade dataset across the United States. Data is limited to post- WW2 inner core census tracts due to the boundaries of HOLC Zones. 
 - `Spatial Resolution`: resolution of original study
 - `Spatial Reference System`: spatial reference system of original study
 - `Temporal Coverage`: temporal extent of original study
