@@ -16,7 +16,7 @@ bibliography: "../../software.bib"
 
 This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining":
 
-> Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). [doi.org/10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
+> Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). DOI:[10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
 
 This study uses ACS Census data and historical HOLC records of neighborhoods to examine the correlation of historical redlining and current-day access to water in cities. The study uses a binary logistic regression to identify relationships of different demographic and HOLC varaibles to access to water and sewage. The study finds that historically worse HOLC scores were correlated with less access to water in cities across all regions of the United States.
 
@@ -121,10 +121,10 @@ economic, housing, and demographic characteristics about our nation's population
 - `Spatial Resolution`: ACS data is aggregated by Census Block. 
 - `Spatial Representation Type`: `vector`, `MULTIPOLYGON`
 - `Spatial Reference System`: `WGS84:4326`
-- `Temporal Coverage`: 1935–1940 (approximate dates of HOLC map creation)
-- `Temporal Resolution`: Single mapping effort. 
+- `Temporal Coverage`: ACS data from 2016-2020. 
+- `Temporal Resolution`: Data is collected annually. 
 - `Lineage`: Downloaded and used as-is.
-- `Distribution`: Data is publically avalible from the Mapping Inequality website (https://dsl.richmond.edu/panorama/redlining/data)[https://dsl.richmond.edu/panorama/redlining/data]
+- `Distribution`: Data is publically avalible from the US Census (https://www.census.gov/programs-surveys/acs/data.html)[https://www.census.gov/programs-surveys/acs/data.html]
 - `Constraints`: Publically avalible data.
 - `Data Quality`: N/A
 
@@ -139,10 +139,10 @@ See acs_values.csv at `/data/raw/public/acs_values.csv`
 - `Spatial Resolution`: Neighborhood-scale boundaries (city block to district level, variable by city)
 - `Spatial Representation Type`: `vector`, `MULTIPOLYGON`
 - `Spatial Reference System`: `NAD83`
-- `Temporal Coverage`: ACS data from 2016-2020. 
-- `Temporal Resolution`: Data is collected annually. 
+- `Temporal Coverage`: 1935–1940 (approximate dates of HOLC map creation)
+- `Temporal Resolution`: Single mapping effort. 
 - `Lineage`: Downloaded and used as-is.
-- `Distribution`: Data is publically avalible from the US Census (https://www.census.gov/programs-surveys/acs/data.html)[https://www.census.gov/programs-surveys/acs/data.html]
+- `Distribution`: Data is publically avalible from the Mapping Inequality website (https://dsl.richmond.edu/panorama/redlining/data)[https://dsl.richmond.edu/panorama/redlining/data]
 - `Constraints`: Publically avalible data.
 - `Data Quality`: Accurate to the degree that the original digitization of the 1930's HOLC maps was accurate. 
 
@@ -183,9 +183,7 @@ Be sure to include any steps planned to **exclude** observations with *missing* 
 
 ## Analysis
 
-Describe the methods of analysis that will directly test the hypotheses or provide results to answer the research questions.
-This section should explicitly define any spatial / statistical *models* and their *parameters*, including *grouping* criteria, *weighting* criteria, and *significance thresholds*.
-Also explain any follow-up analyses or validations.
+Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average. Results were gathered as the Average Marginal Effects (AME) of different census-derived varaibles represented as binary values.
 
 # Results
 
@@ -215,20 +213,18 @@ National
 
 # Discussion
 
-Describe how the results are to be interpreted *vis a vis* each hypothesis or research question.
+Sterling III hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. The study finds evidence for this hypothesis.
+
+A successful reproduction would confirm this hypothesis with similar derived values to those found in the original study.
 
 # Integrity Statement
 
-Include an integrity statement - The authors of this preregistration state that they completed this preregistration to the best of their knowledge and that no other preregistration exists pertaining to the same hypotheses and research.
-If a prior registration *does* exist, explain the rationale for revising the registration here.
+The authors of this preregistration state that they completed this preregistration to the best of their knowledge and that no other preregistration exists pertaining to the same hypotheses and research.
 
 # Acknowledgements
-
-- `Funding Name`: name of funding for the project
-- `Funding Title`: title of project grant
-- `Award info URI`: web address for award information
-- `Award number`: award number
 
 This report is based upon the template for Reproducible and Replicable Research in Human-Environment and Geographical Sciences, DOI:[10.17605/OSF.IO/W29MQ](https://doi.org/10.17605/OSF.IO/W29MQ)
 
 # References
+
+> Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). DOI:[10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
