@@ -1,24 +1,17 @@
-# Title of Study
+# Reproduction: Connections between present-day water access and historical redlining
 
 ### Authors
 
-- First Name Last Name\*, email address, @githubname, ORCID link, affiliated institution(s)
-- First Name Last Name, email address, @githubname, ORCID link, affiliated institution(s)
-
-\* Corresponding author and creator
+- Jorre Dahl, jdahl@middlebury.edu, @jorredahl, Middlebury College
+- Lucas Nerbonne, lnerbonne@middlebury.edu, @lnerbonne, Middlebury College
 
 ### Abstract
 
-Write a brief abstract about your research project.
+This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining":
 
-If the project is a reproduction or replication study, include a declaration of the study type with a full reference to the original study.
-For example:
+> Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). [doi.org/10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
 
-This study is a *replication* of:
-
-> citation to prior study
-
-A graphical abstract of the study could also be included as an image here.
+This study uses ACS Census data and historical HOLC records of neighborhoods to examine the correlation of historical redlining and current-day access to water in cities. The study uses a binary logistic regression to identify relationships of different demographic and HOLC varaibles to access to water and sewage. The study finds that historically worse HOLC scores were correlated with less access to water in cities across all regions of the United States.
 
 ### Study metadata
 
@@ -46,18 +39,13 @@ A graphical abstract of the study could also be included as an image here.
 
 ## Study design
 
-Describe how the study relates to prior literature, e.g. is it a **original study**, **meta-analysis study**, **reproduction study**, **reanalysis study**, or **replication study**?
-
-Also describe the original study archetype, e.g. is it **observational**, **experimental**, **quasi-experimental**, or **exploratory**?
-
-Enumerate specific **hypotheses** to be tested or **research questions** to be investigated here, and specify the type of method, statistical test or model to be used on the hypothesis or question.
+This study is a reproduction of a previous study. However, while the previous study did not directly publish their code, and used Python, R and ArcGIS to complete their methods, all methods in this study will be written and published in a single R Markdown script, so that the results are available for others that wish to reproduce this study.
 
 ## Materials and procedure
 
 ### Computational environment
 
-Define the hardware, operating system, and software requirements for the research.
-Include citations to important software projects, plugins or packages and their versions.
+This study will be done in R Studio Version 2024.12.1, using the: packages.
 
 ### Data and variables
 
@@ -143,47 +131,11 @@ Each of the next subsections describes one data source.
 
 ### Prior observations  
 
-Prior experience with the study area, prior data collection, or prior observation of the data can compromise the validity of a study, e.g. through p-hacking.
-Therefore, disclose any prior experience or observations at the time of study pre-registration here, with example text below:
-
-At the time of this study pre-registration, the authors had _____ prior knowledge of the geography of the study region with regards to the ____ phenomena to be studied.
-This study is related to ____ prior studies by the authors
-
-For each primary data source, declare the extent to which authors had already engaged with the data:
-
-- [ ] no data collection has started
-- [ ] pilot test data has been collected
-- [ ] data collection is in progress and data has not been observed
-- [ ] data collection is in progress and __% of data has been observed
-- [ ] data collection is complete and data has been observed. Explain how authors have already manipulated / explored the data.
-
-For each secondary source, declare the extent to which authors had already engaged with the data:
-
-- [ ] data is not available yet
-- [ ] data is available, but only metadata has been observed
-- [ ] metadata and descriptive statistics have been observed
-- [ ] metadata and a pilot test subset or sample of the full dataset have been observed
-- [ ] the full dataset has been observed. Explain how authors have already manipulated / explored the data.
-
-If pilot test data has been collected or acquired, describe how the researchers observed and analyzed the pilot test, and the extent to which the pilot test influenced the research design.
+There are o prior observations related with this data.
 
 ### Bias and threats to validity
 
-Given the research design and primary data to be collected and/or secondary data to be used, discuss common threats to validity and the approach to mitigating those threats, with an emphasis on geographic threats to validity.
-
-These include:
-  - uneven primary data collection due to geographic inaccessibility or other constraints
-  - multiple hypothesis testing
-  - edge or boundary effects
-  - the modifiable areal unit problem
-  - nonstationarity
-  - spatial dependence or autocorrelation
-  - temporal dependence or autocorrelation
-  - spatial scale dependency
-  - spatial anisotropies
-  - confusion of spatial and a-spatial causation
-  - ecological fallacy
-  - uncertainty e.g. from spatial disaggregation, anonymization, differential privacy
+The two main source of bias in this study come from the HOLC data itself. Firstly, the spatial extent of the HOLC data only covers the centers of major cities across the united states, limiting the analysis to center-cities. Secondly, Areal Interpolation was used to determine a HOLC grade for each block group, meaning that while a single grade can be determined, there may be some errors in block groups crossing over historic neighborhood boundaries.
 
 ### Data transformations
 
@@ -208,7 +160,29 @@ Also explain any follow-up analyses or validations.
 
 ## Results
 
-Describe how results are to be presented.
+Data is presented as 3 figures, 2 tables, and 7 supplementary tables:
+
+Figures:
+
+- Map of HOLC grades for different cities across regions
+- Correlation plot for potential predictive variables
+- Map of percent of houses with incomplete plumbing  across regions
+
+Tables:
+
+- Average Marginal Effects of Variables determined by Binary Regression Model
+- The Number of Each Grade Polygon in Each Data Set
+
+Supplementary Tables:
+
+- The results of the Dunn Test to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades
+- The average % for each predictive variable broken down by HOLC grade and region
+- AME Table for the Nation using the average 2.61168 as the threshold for the binary variable
+National
+- AME Table for the Northeast region using the average 3.414391 as the threshold for the binary variable
+- AME Table for the South region using the average 3.414391 as the threshold for the binary variable
+- AME Table for the Midwest region using the average 3.414391 as the threshold for the binary variable
+- AME Table for the West region using the average 3.414391 as the threshold for the binary variable
 
 ## Discussion
 
