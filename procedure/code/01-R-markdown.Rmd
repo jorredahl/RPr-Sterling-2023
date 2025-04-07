@@ -132,22 +132,10 @@ economic, housing, and demographic characteristics about our nation's population
 - `Distribution`: Data is publically avalible from the Mapping Inequality website (https://dsl.richmond.edu/panorama/redlining/data)[https://dsl.richmond.edu/panorama/redlining/data]
 - `Constraints`: Publically avalible data.
 - `Data Quality`: N/A
-- `Variables`: For each variable, enter the following information. If you have two or more variables per data source, you may want to present this information in table form (shown below)
-  - `Label`: variable name as used in the data or code
-  - `Alias`: intuitive natural language name
-  - `Definition`: Short description or definition of the variable. Include measurement units in description.
-  - `Type`: data type, e.g. character string, integer, real
-  - `Accuracy`: e.g. uncertainty of measurements
-  - `Domain`: Expected range of Maximum and Minimum of numerical data, or codes or categories of nominal data, or reference to a standard codebook
-  - `Missing Data Value(s)`: Values used to represent missing data and frequency of missing data observations
-  - `Missing Data Frequency`: Frequency of missing data observations: not yet known for data to be collected
 
-| Label | Alias | Definition | Type | Accuracy | Domain | Missing Data Value(s) | Missing Data Frequency |
-| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
-| variable1 | ... | ... | ... | ... | ... | ... | ... |
-| variable2 | ... | ... | ... | ... | ... | ... | ... |
+See acs_values.csv at `/data/raw/public/acs_values.csv`
 
-### Primary data source2 name
+### HOLC Grades
 
  `Title`: HOLC grades from the Mapping Inequality Database (MID)
 - `Abstract`: HOLC grades are historical neighborhood delineations created by the Home Owners’ Loan Corporation in the 1930s to assess mortgage lending risk. These maps were used to guide investment and disinvestment in urban areas
@@ -161,79 +149,43 @@ economic, housing, and demographic characteristics about our nation's population
 - `Lineage`: Downloaded and used as-is.
 - `Distribution`: Data is publically avalible from the US Census (https://www.census.gov/programs-surveys/acs/data.html)[https://www.census.gov/programs-surveys/acs/data.html]
 - `Constraints`: Publically avalible data.
-- `Data Quality`: N/A
-- `Variables`: For each variable, enter the following information. If you have two or more variables per data source, you may want to present this information in table form (shown below)
-  - `Label`: variable name as used in the data or code
-  - `Alias`: intuitive natural language name
-  - `Definition`: Short description or definition of the variable. Include measurement units in description.
-  - `Type`: data type, e.g. character string, integer, real
-  - `Accuracy`: e.g. uncertainty of measurements
-  - `Domain`: Expected range of Maximum and Minimum of numerical data, or codes or categories of nominal data, or reference to a standard codebook
-  - `Missing Data Value(s)`: Values used to represent missing data and frequency of missing data observations
-  - `Missing Data Frequency`: Frequency of missing data observations: not yet known for data to be collected
+- `Data Quality`: Accurate to the degree that the original digitization of the 1930's HOLC maps was accurate. 
 
 | Label | Alias | Definition | Type | Accuracy | Domain | Missing Data Value(s) | Missing Data Frequency |
 | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
-| variable1 | ... | ... | ... | ... | ... | ... | ... |
-| variable2 | ... | ... | ... | ... | ... | ... | ... |
+| city | City Name | City in which the HOLC designated area resides | character | N/A | Names of US cities | none | none |
+| state | State Abbreviation | USPS state designator | character | N/A | The 50 states | N/A | none |
+| category | Desirability | Assessment of investment desirability based on HOLC designation  | character | subjective/historical | a range of desigations | none | none |
+| grade | Grade | Historical HOLC grade | character | subjective/historical | A - D | none | none |
+| label | Shape Label | HOLC grade and arbitrary number (A1, C3) to divide same-grade areas from the same city| character | N/A | A-D, number of same-grade zones in the same city | none | none |
+| residential | Is it residential? | " " | bianary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
+| commercial | Is it commercial? | " "  | bianary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
+| industrial | Is it industrial? | " "  | bianary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 
-### Secondary data source1 name
-
-- `Title`: Title of data source
-- `Abstract`: Brief description of the data source
-- `Spatial Coverage`: Specify the geographic extent of your study. This may be a place name and link to a feature in a gazetteer like GeoNames or OpenStreetMap, or a well known text (WKT) representation of a bounding box.
-- `Spatial Resolution`: Specify the spatial resolution as a scale factor, description of the level of detail of each unit of observation (including administrative level of administrative areas), and/or or distance of a raster GRID size
-- `Spatial Reference System`: `WGS84:4326`
-- `Temporal Coverage`: Specify the temporal extent of your study---i.e. the range of time represented by the data observations.
-- `Temporal Resolution`: Specify the temporal resolution of your study---i.e. the duration of time for which each observation represents or the revisit period for repeated observations
-- `Lineage`: Describe and/or cite data sources and/or methodological steps used to create this data source
-- `Distribution`: Describe how the data is distributed, including any persistent identifier (e.g. DOI) or URL for data access
-- `Constraints`: Legal constraints for *access* or *use* to protect *privacy* or *intellectual property rights*
-- `Data Quality`: State result of quality assessment or state "Quality unknown"
-- `Variables`: For each variable, enter the following information. If you have two or more variables per data source, you may want to present this information in table form (shown below)
-  - `Label`: variable name as used in the data or code
-  - `Alias`: intuitive natural language name
-  - `Definition`: Short description or definition of the variable. Include measurement units in description.
-  - `Type`: data type, e.g. character string, integer, real
-  - `Accuracy`: e.g. uncertainty of measurements
-  - `Domain`: Range (Maximum and Minimum) of numerical data, or codes or categories of nominal data, or reference to a standard codebook
-  - `Missing Data Value(s)`: Values used to represent missing data and frequency of missing data observations
-  - `Missing Data Frequency`: Frequency of missing data observations
-
-| Label | Alias | Definition | Type | Accuracy | Domain | Missing Data Value(s) | Missing Data Frequency |
-| :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
-| variable1 | ... | ... | ... | ... | ... | ... | ... |
-| variable2 | ... | ... | ... | ... | ... | ... | ... |
-
-### Secondary data source2 name
-
-... same form as above...
 
 ## Prior observations  
 
 Prior experience with the study area, prior data collection, or prior observation of the data can compromise the validity of a study, e.g. through p-hacking.
 Therefore, disclose any prior experience or observations at the time of study pre-registration here, with example text below:
 
-At the time of this study pre-registration, the authors had _____ prior knowledge of the geography of the study region with regards to the ____ phenomena to be studied.
-This study is related to ____ prior studies by the authors
+At the time of this study pre-registration, the authors had a working prior knowledge of the geography of the study region with regards to the redlining phenomena to be studied.
+This study is related to no prior published studies by the authors
 
 For each primary data source, declare the extent to which authors had already engaged with the data:
 
-- [ ] no data collection has started
+Census
+- [x] no data collection has started
 - [ ] pilot test data has been collected
 - [ ] data collection is in progress and data has not been observed
 - [ ] data collection is in progress and __% of data has been observed
 - [ ] data collection is complete and data has been observed. Explain how authors have already manipulated / explored the data.
 
-For each secondary source, declare the extent to which authors had already engaged with the data:
 
-- [ ] data is not available yet
-- [ ] data is available, but only metadata has been observed
-- [ ] metadata and descriptive statistics have been observed
-- [ ] metadata and a pilot test subset or sample of the full dataset have been observed
-- [ ] the full dataset has been observed. Explain how authors have already manipulated / explored the data.
-
-If pilot test data has been collected or acquired, describe how the researchers observed and analyzed the pilot test, and the extent to which the pilot test influenced the research design.
+- [ ] no data collection has started
+- [ ] pilot test data has been collected
+- [x] data collection is in progress and data has not been observed
+- [ ] data collection is in progress and __% of data has been observed
+- [ ] data collection is complete and data has been observed. Explain how authors have already manipulated / explored the data.
 
 ## Bias and threats to validity
 
