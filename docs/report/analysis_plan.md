@@ -131,7 +131,7 @@ Each of the next subsections describes one data source.
 
 ### Prior observations  
 
-There are o prior observations related with this data.
+There are no prior observations related with this data.
 
 ### Bias and threats to validity
 
@@ -179,10 +179,10 @@ Supplementary Tables:
 - The average % for each predictive variable broken down by HOLC grade and region
 - AME Table for the Nation using the average 2.61168 as the threshold for the binary variable
 National
-- AME Table for the Northeast region using the average 3.414391 as the threshold for the binary variable
+- AME Table for the Northeast region using the average 1.447623 as the threshold for the binary variable
 - AME Table for the South region using the average 3.414391 as the threshold for the binary variable
-- AME Table for the Midwest region using the average 3.414391 as the threshold for the binary variable
-- AME Table for the West region using the average 3.414391 as the threshold for the binary variable
+- AME Table for the Midwest region using the average 3.756471 as the threshold for the binary variable
+- AME Table for the West region using the average 0.7836609 as the threshold for the binary variable
 
 ## Discussion
 
