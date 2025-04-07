@@ -125,7 +125,7 @@ economic, housing, and demographic characteristics about our nation's population
 - `Spatial Coverage`: United States of America
 - `Spatial Resolution`: ACS data is aggregated by Census Block. 
 - `Spatial Representation Type`: `vector`, `MULTIPOLYGON`
-- `Spatial Reference System`: `WGS84:4326`
+- `Spatial Reference System`: `WGS84 EPSG:4326`
 - `Temporal Coverage`: 1935–1940 (approximate dates of HOLC map creation)
 - `Temporal Resolution`: Single mapping effort. 
 - `Lineage`: Downloaded and used as-is.
