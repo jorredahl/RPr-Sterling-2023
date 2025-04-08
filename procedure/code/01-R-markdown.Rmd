@@ -166,18 +166,17 @@ Two main source of bias in this study come from the HOLC data itself, while anot
 
 ## Data transformations
 
-Describe all data transformations planned to prepare data sources for analysis.
-This section should explain with the fullest detail possible how to transform data from the **raw** state at the time of acquisition or observation, to the pre-processed **derived** state ready for the main analysis.
-Including steps to check and mitigate sources of **bias** and **threats to validity**.
-The method may anticipate **contingencies**, e.g. tests for normality and alternative decisions to make based on the results of the test.
-More specifically, all the **geographic** and **variable** transformations required to prepare input data as described in the data and variables section above to match the study's spatio-temporal characteristics as described in the study metadata and study design sections.
-Visual workflow diagrams may help communicate the methodology in this section.
+First, using areal interpolation through area-weighted reaggregation. However, because all derived census statistics will be caluculated as percentages, new area-weighted census variables do not need to be calculated. Instead, only new polygons clipped by each of the HOLC polygons from the Mapping Inequality Database are used.
 
-Examples of **geographic** transformations include coordinate system transformations, aggregation, disaggregation, spatial interpolation, distance calculations, zonal statistics, etc.
+Then, the Block Group data is filtered for all block groups with populations above 0 and HOLC Grades of A, B, C, and D (excluding E).
 
-Examples of **variable** transformations include standardization, normalization, constructed variables, imputation, classification, etc.
+Using census statistics from the ACS dataset, resulting calculated variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
-Be sure to include any steps planned to **exclude** observations with *missing* or *outlier* data, to **group** observations by *attribute* or *geographic* criteria, or to **impute** missing data or apply spatial or temporal **interpolation**.
+This data can then be verified with the Supplementary Data Tables.
+
+Then, use the Dunn Test to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades and compared with supplementary table 1.
+
+Using a Stepwise function with the $StepAIC$ package and the HOLC Grade A as a reference group, we can gather a correlation table to remove the highest correlation values. In this case, the highest correlation value will be removed, and compared with supplementary table 2.
 
 ## Analysis
 
