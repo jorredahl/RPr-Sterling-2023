@@ -1,4 +1,4 @@
-# Title of Study
+# Reproduction: Connections between present-day water access and historical redlining.
 
 ## Contributors
 
