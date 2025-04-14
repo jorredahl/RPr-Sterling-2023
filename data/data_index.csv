@@ -1,3 +1,8 @@
 path,name,metadata,description
 location, ACS, data/metadata/ACS.md, American Community Survey data for 2016-2020
 data/raw/public/mappinginequality.gpkg, HOLC Grades, data/metadata/HOLC Grades.md, Historical HOLC grades for inner-city cores.
+data/derived/public/original/sd_national.csv, Supplementary Table 1, data/metadata/Source Materials.md, Descriptive statistics for the nation
+data/derived/public/original/sd_midwest.csv, Supplementary Table 2, data/metadata/Source Materials.md, Descriptive statistics for the midwest region
+data/derived/public/original/sd_northeast.csv, Supplementary Table 3, data/metadata/Source Materials.md, Descriptive statistics for the northeast region
+data/derived/public/original/sd_south.csv, Supplementary Table 4, data/metadata/Source Materials.md, Descriptive statistics for the southern region
+data/derived/public/original/sd_west.csv, Supplementary Table 5, data/metadata/Source Materials.md, Descriptive statistics for the western region
