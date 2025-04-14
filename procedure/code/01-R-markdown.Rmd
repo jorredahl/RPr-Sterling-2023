@@ -62,7 +62,8 @@ This is somewhat of a strange strategy; often used to fill in missing or anamolo
 for something like assigning data to an irregularly shaped polygon. Furthermore, areal interpolation assigns a value that is a average of several values of the areal units on either side of it.
 This suggests that the phenomena to be studied in the filled in area is a continuation of patterns that are present proximal to it. This is almost the opposite of the point of HOLC grades,
 grades assigned to neighborhoods based on their characteristics that set them apart. There's a somewhat simple explanation to why Sterling chose to use this approach; The study that Sterling cites as the published usage of this technique for re-aggregating HOLC data - Fricker and Allen 2022 - used 
-area-weighted-reaggregation to re-assign casualties from tornado paths to the neighborhoods they passed through, but incorrectly used the term 'areal interpolation' to describe their method. This means that likely Sterling also just used AWR, an assumption that will need to be confirmed.  
+area-weighted-reaggregation to re-assign casualties from tornado paths to the neighborhoods they passed through, but incorrectly used the term 'areal interpolation' to describe their method. This means that likely Sterling also just used AWR. This assumption is supported by an interrogation of the python package used for the 
+reaggregation, which considers AWR "the simplest form of areal interpolation", a somewhat misleading designation given that the two refer to different techniques. 
 
 
 # Materials and procedure
@@ -184,13 +185,9 @@ Additionally, it's unclear how this areal interpolation was done. Lastly, there 
 
 ## Data transformations
 
-First, using areal interpolation through area-weighted reaggregation. 
-However, because all derived census statistics will be caluculated as percentages, new area-weighted census variables do not need to be calculated. 
-Instead, only new polygons clipped by each of the HOLC polygons from the Mapping Inequality Database are used.
+First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
-Then, the Block Group data is filtered for all block groups with populations above 0 and HOLC Grades of A, B, C, and D (excluding E).
-
-Using census statistics from the ACS dataset, resulting calculated variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
+Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
 This data can then be verified with the Supplementary Data Tables.
 
