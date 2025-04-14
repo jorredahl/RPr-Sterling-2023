@@ -123,7 +123,7 @@ knitr::opts_chunk$set(
 
 ## Data and variables
 
-This study used only two data sources; American Community Survey (ACS) demographic data and maps of neighborhood's historical morgage HOLC grades, published and maintained on
+This study used only two data sources; American Community Survey (ACS) demographic data and maps of neighborhood's historical mortgage HOLC grades, published and maintained on
 the University of Richmond's Mapping Inequality Database. 
 
 ### American Community Survey (ACS)
@@ -143,6 +143,10 @@ economic, housing, and demographic characteristics about our nation's population
 - `Data Quality`: N/A
 
 See acs_values.csv at `/data/raw/public/acs_values.csv`
+
+```{r Collect-ACS}
+
+```
 
 ### HOLC Grades
 
@@ -167,10 +171,13 @@ See acs_values.csv at `/data/raw/public/acs_values.csv`
 | category | Desirability | Assessment of investment desirability based on HOLC designation  | character | subjective/historical | a range of desigations | none | none |
 | grade | Grade | Historical HOLC grade | character | subjective/historical | A - D | none | none |
 | label | Shape Label | HOLC grade and arbitrary number (A1, C3) to divide same-grade areas from the same city| character | N/A | A-D, number of same-grade zones in the same city | none | none |
-| residential | Is it residential? | " " | bianary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
-| commercial | Is it commercial? | " "  | bianary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
-| industrial | Is it industrial? | " "  | bianary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
+| residential | Is it residential? | " " | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
+| commercial | Is it commercial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
+| industrial | Is it industrial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 
+```{r Collect-HOLC}
+
+```
 
 ## Prior observations  
 
