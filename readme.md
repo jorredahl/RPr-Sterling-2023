@@ -1,4 +1,4 @@
-# Title of Study
+# Reproduction: Connections between present-day water access and historical redlining.
 
 ## Contributors
 
@@ -20,7 +20,7 @@ This study uses ACS Census data and historical HOLC records of neighborhoods to 
 - `Date created`: 4/7/25
 - `Date modified`: 4/7/25
 - `Spatial Coverage`: A collection of inner-city cores with historical HOLC grades that are stored in the University of Richmond Mapping Inequality database. 
-- `Spatial Resolution`: Area-Weighted Census Blocks Clipped by HOLC zone
+- `Spatial Resolution`: HOLC neighborhood zones
 - `Spatial Reference System`: WGS84 EPSG:4326
 - `Temporal Coverage`: 2016-2020
 - `Temporal Resolution`: Observations collected yearly
