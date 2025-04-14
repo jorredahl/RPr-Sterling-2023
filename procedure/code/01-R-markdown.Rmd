@@ -134,12 +134,12 @@ economic, housing, and demographic characteristics about our nation's population
 - `Spatial Coverage`: United States of America
 - `Spatial Resolution`: ACS data is aggregated by Census Block. 
 - `Spatial Representation Type`: `vector`, `MULTIPOLYGON`
-- `Spatial Reference System`: `WGS84:4326`
+- `Spatial Reference System`: `NAD83`
 - `Temporal Coverage`: ACS data from 2016-2020. 
 - `Temporal Resolution`: Data is collected annually. 
 - `Lineage`: Downloaded and used as-is.
 - `Distribution`: Data is publically avalible from the US Census (https://www.census.gov/programs-surveys/acs/data.html)[https://www.census.gov/programs-surveys/acs/data.html]
-- `Constraints`: Publically avalible data.
+- `Constraints`: Publicly available data.
 - `Data Quality`: N/A
 
 See acs_values.csv at `/data/raw/public/acs_values.csv`
@@ -156,8 +156,8 @@ See acs_values.csv at `/data/raw/public/acs_values.csv`
 - `Temporal Coverage`: 1935–1940 (approximate dates of HOLC map creation)
 - `Temporal Resolution`: Single mapping effort. 
 - `Lineage`: Downloaded and used as-is.
-- `Distribution`: Data is publically avalible from the Mapping Inequality website (https://dsl.richmond.edu/panorama/redlining/data)[https://dsl.richmond.edu/panorama/redlining/data]
-- `Constraints`: Publically avalible data.
+- `Distribution`: Data is avalible on the Mapping Inequality website (https://dsl.richmond.edu/panorama/redlining/data)[https://dsl.richmond.edu/panorama/redlining/data]
+- `Constraints`: Publicly available data under a [CC-by-NC 2.5 license](https://creativecommons.org/licenses/by-nc/2.5/deed.en)
 - `Data Quality`: Accurate to the degree that the original digitization of the 1930's HOLC maps was accurate. 
 
 | Label | Alias | Definition | Type | Accuracy | Domain | Missing Data Value(s) | Missing Data Frequency |
