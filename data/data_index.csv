@@ -1,8 +1,23 @@
 path,name,metadata,description
 location, ACS, data/metadata/ACS.md, American Community Survey data for 2016-2020
 data/raw/public/mappinginequality.gpkg, HOLC Grades, data/metadata/HOLC Grades.md, Historical HOLC grades for inner-city cores.
-data/derived/public/original/sd_national.csv, Supplementary Table 1, data/metadata/Source Materials.md, Descriptive statistics for the nation
-data/derived/public/original/sd_midwest.csv, Supplementary Table 2, data/metadata/Source Materials.md, Descriptive statistics for the midwest region
-data/derived/public/original/sd_northeast.csv, Supplementary Table 3, data/metadata/Source Materials.md, Descriptive statistics for the northeast region
-data/derived/public/original/sd_south.csv, Supplementary Table 4, data/metadata/Source Materials.md, Descriptive statistics for the southern region
-data/derived/public/original/sd_west.csv, Supplementary Table 5, data/metadata/Source Materials.md, Descriptive statistics for the western region
+data/derived/public/original/sd_national.csv, Supplementary Data Table 1, data/metadata/Supplementary Data Tables.md, Descriptive statistics for the nation
+data/derived/public/original/sd_midwest.csv, Supplementary Data Table 2, data/metadata/Supplementary Data Tables.md, Descriptive statistics for the midwest region
+data/derived/public/original/sd_northeast.csv, Supplementary Data Table 3, data/metadata/Supplementary Data Tables.md, Descriptive statistics for the northeast region
+data/derived/public/original/sd_south.csv, Supplementary Data Table 4, data/metadata/Supplementary Data Tables.md, Descriptive statistics for the southern region
+data/derived/public/original/sd_west.csv, Supplementary Data Table 5, data/metadata/Supplementary Data Tables.md, Descriptive statistics for the western region
+results/tables/original/table_1.csv, Table 1, data/metadata/Supplementary Tables.md, Demographic information by region
+results/tables/original/table_2.csv, Table 2, data/metadata/Supplementary Tables.md, Number of HOLC grade neighborhoods by region
+results/tables/original/table_s1.csv, Table S1, data/metadata/Supplementary Tables.md, Results of the Dunn Test to determine whether incomplete plumbing % in Grade A is
+significantly different than the other Grades.
+results/tables/original/table_s2.csv, Table S2, data/metadata/Supplementary Tables.md, The average % for each predictive variable broken down by HOLC grade and region.
+results/tables/original/table_s3.csv, Table S3, data/metadata/Supplementary Tables.md, AME Table for the Nation using the average 2.61168 as the threshold for the binary
+variable.
+results/tables/original/table_s4.csv, Table S4, data/metadata/Supplementary Tables.md, AME Table for the Northeast region using the average 1.447623 as the threshold for
+the binary variable.
+results/tables/original/table_s5.csv, Table S5, data/metadata/Supplementary Tables.md, AME Table for the South region using the average 3.414391 as the threshold for the
+binary variable.
+results/tables/original/table_s6.csv, Table S6, data/metadata/Supplementary Tables.md, AME Table for the Midwest region using the average 3.756471 as the threshold for
+the binary variable.
+results/tables/original/table_s7.csv, Table S7, data/metadata/Supplementary Tables.md, AME Table for the West region using the average 0.7836609 as the threshold for the
+binary variable.

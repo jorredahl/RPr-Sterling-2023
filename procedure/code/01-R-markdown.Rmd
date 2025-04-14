@@ -27,30 +27,21 @@ The study finds that historically worse HOLC scores were correlated with less ac
 - `Date created`: 4/7/25
 - `Date modified`: 4/7/25
 - `Spatial Coverage`: A collection of inner-city cores with historical HOLC grades that are stored in the University of Richmond Mapping Inequality database. 
-- `Spatial Resolution`: Area-Weighted Census Blocks Clipped by HOLC zone
-- `Spatial Reference System`: WGS84 EPSG:4326
+- `Spatial Resolution`: HOLC polygons 
+- `Spatial Reference System`: NAD83
 - `Temporal Coverage`: 2016-2020
 - `Temporal Resolution`: Observations collected yearly
-- `Funding Name`: none
-- `Funding Title`: none
-- `Award info URI`: none
-- `Award number`: none
+
 
 ## Original study spatio-temporal metadata
 
-- `Spatial Coverage`: Specific inner-cities that are included in the MID HOCL Grade dataset across the United States. Data is limited to post- WW2 inner core census tracts due to the boundaries of HOLC Zones. 
-- `Spatial Resolution`: resolution of original study
-- `Spatial Reference System`: spatial reference system of original study
-- `Temporal Coverage`: temporal extent of original study
-- `Temporal Resolution`: temporal resolution of original study
+- `Spatial Coverage`: A collection of inner-city cores with historical HOLC grades that are stored in the University of Richmond Mapping Inequality database. 
+- `Spatial Resolution`: HOLC polygons 
+- `Spatial Reference System`: NAD83
+- `Temporal Coverage`: 2016-2020
+- `Temporal Resolution`: Observations collected yearly (ACS)
 
 # Study design
-
-Describe how the study relates to prior literature, e.g. is it a **original study**, **meta-analysis study**, **reproduction study**, **reanalysis study**, or **replication study**?
-
-Also describe the original study archetype, e.g. is it **observational**, **experimental**, **quasi-experimental**, or **exploratory**?
-
-Enumerate specific **hypotheses** to be tested or **research questions** to be investigated here, and specify the type of method, statistical test or model to be used on the hypothesis or question.
 
 This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining", a study which set out to 
 explore the relationship between prevalence of the `complete plumbing` ACS variable in census blocks and historical neighborhood HOLC grades. In the study, Sterling hypothesizes that there will be a link
@@ -74,7 +65,7 @@ reaggregation, which considers AWR "the simplest form of areal interpolation", a
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
-packages <- c("tidyverse", "here")
+packages <- c("tidyverse", "here", "tidycensus", "stepAIC", "margins")
 
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
@@ -194,7 +185,9 @@ Additionally, it's unclear how this areal interpolation was done. Lastly, there 
 
 First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
-Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
+Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. 
+This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
+This bianary variable will be creaed with a case/when function, using a national average of 2.61668% incomplete plumbing to determine if HOLC neighborhoods fall above or below. Neighborhoods that fall above will be assigned a 1, others will be assigned a 0. 
 
 This data can then be verified with the Supplementary Data Tables.
 
@@ -204,7 +197,10 @@ Using a Stepwise function with the $StepAIC$ package and the HOLC Grade A as a r
 
 ## Analysis
 
-Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average. Results were gathered as the Average Marginal Effects (AME) of different census-derived varaibles represented as binary values.
+Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average. 
+Results were gathered as the Average Marginal Effects (AME) of different census-derived varaibles represented as binary values.
+
+To test potential unaccounted for geographic correlation, we will re-run using a geographic weighted regression (GWR) to assess the degree to which the proximity of similar HOLC grades effect the statistical correlation found by the original authors. 
 
 # Results
 
@@ -235,9 +231,15 @@ National Data Tables
 
 # Discussion
 
-Sterling III hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. The study finds evidence for this hypothesis.
+Sterling hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. 
+The study finds evidence for this hypothesis through the correlation of lower HOLC grades and incomplete plumbing.
 
 A successful reproduction would confirm this hypothesis with similar derived values to those found in the original study.
+Because the data transformations that are a part of this workflow are relatively simple, I would expect that there is very little margin for error in the difference of the final product from that of Sterling. 
+The one potential complication is Sterling's unsubstantiated use of either AWR or AI, which will need to be investigated. 
+Because we're not sure what method he used, our results could be slightly different depending on what package was chosen. 
+
+Comparing the results of the bianary logistic regression and the geographic weighted regression will be interesting, assessing the degree to which geographic correlation plays a role in the significance found as part of the results of this study. 
 
 # Integrity Statement
 
