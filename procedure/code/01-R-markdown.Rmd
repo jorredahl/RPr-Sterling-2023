@@ -14,11 +14,13 @@ bibliography: "../../software.bib"
 
 # Abstract
 
-This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining":
+This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining".
 
 > Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). DOI:[10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
 
-This study uses ACS Census data and historical HOLC records of neighborhoods to examine the correlation of historical redlining and current-day access to water in cities. The study uses a binary logistic regression to identify relationships of different demographic and HOLC varaibles to access to water and sewage. The study finds that historically worse HOLC scores were correlated with less access to water in cities across all regions of the United States.
+This study uses ACS Census data and historical HOLC records of neighborhoods to examine the correlation of historical redlining and current-day access to water in cities. 
+The study uses a binary logistic regression to identify relationships of different demographic and HOLC varaibles to access to water and sewage. 
+The study finds that historically worse HOLC scores were correlated with less access to water in cities across all regions of the United States.
 
 - `Key words`: ACS, HOLC Grade, Redlining, Water Access
 - `Subject`: Social and Behavioral Sciences: Geography: Human Geography
@@ -49,6 +51,19 @@ Describe how the study relates to prior literature, e.g. is it a **original stud
 Also describe the original study archetype, e.g. is it **observational**, **experimental**, **quasi-experimental**, or **exploratory**?
 
 Enumerate specific **hypotheses** to be tested or **research questions** to be investigated here, and specify the type of method, statistical test or model to be used on the hypothesis or question.
+
+This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining", a study which set out to 
+explore the relationship between prevalence of the `complete plumbing` ACS variable in census blocks and historical neighborhood HOLC grades. In the study, Sterling hypothesizes that there will be a link
+between HOLC grade and complete plumbing. This hypothesis is based on the HOLC's well documented history of assigning neighborhoods of color the lowest grades and previous findings
+of a nationwide link between race and complete plumbing prevalance as found in Deitz and Meehan 2019. Sterling's work uses similar method to this study, using a logistic regression to test the link between the neighborhood grades and plumbing. 
+
+Other methods included in this study include the use of Areal Interpolation to supposedly assign ACS variable characteristics to the HOLC graded neighborhoods. 
+This is somewhat of a strange strategy; often used to fill in missing or anamolous values in gridded data, areal interpolation doesn't make a lot of sense 
+for something like assigning data to an irregularly shaped polygon. Furthermore, areal interpolation assigns a value that is a average of several values of the areal units on either side of it.
+This suggests that the phenomena to be studied in the filled in area is a continuation of patterns that are present proximal to it. This is almost the opposite of the point of HOLC grades,
+grades assigned to neighborhoods based on their characteristics that set them apart. There's a somewhat simple explanation to why Sterling chose to use this approach; The study that Sterling cites as the published usage of this technique for re-aggregating HOLC data - Fricker and Allen 2022 - used 
+area-weighted-reaggregation to re-assign casualties from tornado paths to the neighborhoods they passed through, but incorrectly used the term 'areal interpolation' to describe their method. This means that likely Sterling also just used AWR, an assumption that will need to be confirmed.  
+
 
 # Materials and procedure
 
@@ -162,11 +177,16 @@ There are no prior observations related with this data.
 
 ## Bias and threats to validity
 
-Two main source of bias in this study come from the HOLC data itself, while another comes from the ACS data. Firstly, the spatial extent of the HOLC data only covers the centers of major cities across the united states, limiting the analysis to center-cities. Secondly, Areal Interpolation was used to determine a HOLC grade for each block group, meaning that while a single grade can be determined, there may be some errors in block groups crossing over historic neighborhood boundaries. Additionally, it's unclear how this areal interpolation was done. Lastly, there could be a difference in results if an areal unit other than census block groups were used to perform this analysis.
+Two main source of bias in this study come from the HOLC data itself, while another comes from the ACS data. 
+Firstly, the spatial extent of the HOLC data only covers the centers of major cities across the united states, limiting the analysis to center-cities. 
+Secondly, 'Areal Interpolation' was used to determine census data values for each HOLC neighborhood, a method that doesn't seem logical or advisable give the study context. Some data in the study suggests that this actually was a more logical area weighted reaggregation.
+Additionally, it's unclear how this areal interpolation was done. Lastly, there could be a difference in results if an areal unit other than census block groups were used to perform this analysis.
 
 ## Data transformations
 
-First, using areal interpolation through area-weighted reaggregation. However, because all derived census statistics will be caluculated as percentages, new area-weighted census variables do not need to be calculated. Instead, only new polygons clipped by each of the HOLC polygons from the Mapping Inequality Database are used.
+First, using areal interpolation through area-weighted reaggregation. 
+However, because all derived census statistics will be caluculated as percentages, new area-weighted census variables do not need to be calculated. 
+Instead, only new polygons clipped by each of the HOLC polygons from the Mapping Inequality Database are used.
 
 Then, the Block Group data is filtered for all block groups with populations above 0 and HOLC Grades of A, B, C, and D (excluding E).
 
@@ -202,7 +222,8 @@ Supplementary Tables:
 - The results of the Dunn Test to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades
 - The average % for each predictive variable broken down by HOLC grade and region
 - AME Table for the Nation using the average 2.61168 as the threshold for the binary variable
-National
+
+National Data Tables
 - AME Table for the Northeast region using the average 1.447623 as the threshold for the binary variable
 - AME Table for the South region using the average 3.414391 as the threshold for the binary variable
 - AME Table for the Midwest region using the average 3.756471 as the threshold for the binary variable
@@ -225,3 +246,7 @@ This report is based upon the template for Reproducible and Replicable Research 
 # References
 
 > Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). DOI:[10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
+
+> Shiloh Deitz and Katie Meehan. “Plumbing Poverty: Mapping Hot Spots of Racial and Geographic Inequality in U.S. Household Water Insecurity.” Annals of the American Association of Geographers 109 (2019): 1092–1109.
+
+> Tyler Fricker and Douglas L. Allen. “A Place-Based Analysis of Tornado Activity and Casualties in Shreveport, Louisiana.” Natural Hazards 113 (2022): 1853–1874.
