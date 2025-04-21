@@ -204,7 +204,7 @@ Additionally, it's unclear how this areal interpolation was done. Lastly, there 
 
 ## Data transformations
 
-**unplanned deviation**
+**unplanned deviation from analysis plan**
 Due to massive ACS file sizes, we will first run an intersection to only do later data transformations on the block groups that intersect HOLC polygons to speed up the analysis.
 ```{intersection}
 ACS<- st_intersection(ACS_called, HOLC)
@@ -289,30 +289,21 @@ Data will now be verified using the supplementary tables by subtracting them fro
 This is somewhat of a test of whether the authors actually did in fact use area weighted reaggregation or areal interpolation; if they used AWI, our results should match.
 Additionally, because the reaggregation was done in a Python package this will test the similarities/differences of our implementation. 
 
+The chosen method to test the accuracy of the data is to compare it to the regional summary statistics, presented in table 1 (results/tables/original/table_1.csv). I'll split data_clean rows into regions, 
+calculate summary stats for them, compile into a single df, and then subtract them from table 1. 
+
 ```{test AWI}
-sd_national<- read_csv("data/derived/public/original/sd_national.csv")
-national_testing<- sd_national|>
-select(
-    holc_id,
-    neighborho,
-    area_descr,
-    `Black Population %`,
-    `White Population %`,
-    `Indigenous American %`,
-    `Asian Population %`,
-    `Hispanic or Latino Population %`,
-    `% Below Poverty Line`,
-    `% Housing Units Owned`,
-    `% Housing Units Rented`,
-    `% Mobile Homes`,
-    `% Homes before 1980`,
-    `% Homes after 1980`,
-    `% With Complete Plumbing`,
-    `% With Incomplete Plumbing`,
-    `% Foreign Born`,
-    Shape_Area,
-    water_access
-  )
+sd_midwest<- read_csv("data/derived/public/original/sd_midwest.csv")
+sd_northeast<- read_csv("data/derived/public/original/sd_northeast.csv")
+sd_south<- read_csv("data/derived/public/original/sd_south.csv")
+sd_west<- read_csv("data/derived/public/original/sd_west.csv")
+
+sd_midwest_testing <- sd_midwest[, 2:ncolumn(sd_midwest)]
+sd_midwest_testing <- sd_northeast[, 2:ncolumn(sd_northeast)]
+sd_midwest_testing <- sd_south[, 2:ncolumn(sd_south)]
+sd_midwest_testing <- sd_west[, 2:ncolumn(sd_west)]
+
+
 
 data_test <- data_clean %>% select(-holc_grade)
 test1<- data_test-national_testing
@@ -321,7 +312,6 @@ kbl(test1) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
   column_spec(1, bold = TRUE) %>%
   scroll_box(width = "100%", height = "400px")
-
 ```
 
 
