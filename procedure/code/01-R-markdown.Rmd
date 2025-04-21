@@ -27,21 +27,30 @@ The study finds that historically worse HOLC scores were correlated with less ac
 - `Date created`: 4/7/25
 - `Date modified`: 4/7/25
 - `Spatial Coverage`: A collection of inner-city cores with historical HOLC grades that are stored in the University of Richmond Mapping Inequality database. 
-- `Spatial Resolution`: HOLC polygons 
-- `Spatial Reference System`: NAD83
+- `Spatial Resolution`: Area-Weighted Census Blocks Clipped by HOLC zone
+- `Spatial Reference System`: WGS84 EPSG:4326
 - `Temporal Coverage`: 2016-2020
 - `Temporal Resolution`: Observations collected yearly
-
+- `Funding Name`: none
+- `Funding Title`: none
+- `Award info URI`: none
+- `Award number`: none
 
 ## Original study spatio-temporal metadata
 
-- `Spatial Coverage`: A collection of inner-city cores with historical HOLC grades that are stored in the University of Richmond Mapping Inequality database. 
-- `Spatial Resolution`: HOLC polygons 
-- `Spatial Reference System`: NAD83
-- `Temporal Coverage`: 2016-2020
-- `Temporal Resolution`: Observations collected yearly (ACS)
+- `Spatial Coverage`: Specific inner-cities that are included in the MID HOCL Grade dataset across the United States. Data is limited to post- WW2 inner core census tracts due to the boundaries of HOLC Zones. 
+- `Spatial Resolution`: resolution of original study
+- `Spatial Reference System`: spatial reference system of original study
+- `Temporal Coverage`: temporal extent of original study
+- `Temporal Resolution`: temporal resolution of original study
 
 # Study design
+
+Describe how the study relates to prior literature, e.g. is it a **original study**, **meta-analysis study**, **reproduction study**, **reanalysis study**, or **replication study**?
+
+Also describe the original study archetype, e.g. is it **observational**, **experimental**, **quasi-experimental**, or **exploratory**?
+
+Enumerate specific **hypotheses** to be tested or **research questions** to be investigated here, and specify the type of method, statistical test or model to be used on the hypothesis or question.
 
 This study is a *reproduction* of Charles W. Sterling III et al's study on "Connections Between Present-Day Water Access and Historical Redlining", a study which set out to 
 explore the relationship between prevalence of the `complete plumbing` ACS variable in census blocks and historical neighborhood HOLC grades. In the study, Sterling hypothesizes that there will be a link
@@ -67,7 +76,7 @@ This reproduction uses the: R packages
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
-packages <- c("tidyverse", "here", "tidycensus", "stepAIC", "margins", "FSA")
+packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "FSA")
 
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
@@ -137,12 +146,12 @@ economic, housing, and demographic characteristics about our nation's population
 See acs_values.csv at `/data/raw/public/acs_values.csv`
 
 ```{r ACS Metadata}
-my_vars <- c(total_pop_race = "B01003_001", white_pop = "B02008_001", black_pop = "B02009_001", ind_pop = "B02010_001", asian_pop = "B02011_001", hisp_pop = "B03001_003", total_pop_pl = "B17001_001", bp_pop = "B17001_002", total_hu_ten = "B25003_001", total_own = "B25003_002", total_rent = "B25003_003", total_hu_mh = "B25024_001", total_mh = "B25024_010", total_hu_age = "B25034_001", age_2014 = "B25034_002", age_2010 = "B25034_003", age_2000 = "B25034_004", age_1990 = "B25034_005", age_1980 = "B25034_006", age_1970 = "B25034_007", age_1960 = "B25034_008", age_1950 = "B25034_009", age_1940 = "B25034_010", age_1939 = "B25034_011", total_hu_plumb = "B25047_001", c_plumb = "B25047_002", ic_plumb = "B25047_003", total_pop_fb = "B05002_001", fb_pop = "B05002_013")
+my_vars <- c(white_pct = "DP05_0064P", black_pct = "DP05_0065P", ind_pct = "DP05_0066P", asian_pct = "DP05_0067P", total_pop_hisp = "B03003_001", hisp_pop = "B03003_003", total_pop_pl = "B29003_001", bp_pop = "B29003_002", total_hu_ten = "B25003_001", total_own = "B25003_002", total_rent = "B25003_003", total_hu_mh = "B25024_001", total_mh = "B25024_010", total_hu_age = "B25034_001", age_2014 = "B25034_002", age_2010 = "B25034_003", age_2000 = "B25034_004", age_1990 = "B25034_005", age_1980 = "B25034_006", age_1970 = "B25034_007", age_1960 = "B25034_008", age_1950 = "B25034_009", age_1940 = "B25034_010", age_1939 = "B25034_011", total_hu_plumb = "B25047_001", c_plumb = "B25047_002", ic_plumb = "B25047_003", total_pop_fb = "B05012_001", fb_pop = "B05012_003")
 
-acs_vars <- load_variables(2020, "acs5", cache = TRUE)
+acs_vars <- load_variables(2020, "acs5/profile", cache = TRUE)
 
 user_guide <- acs_vars %>%
-  filter(name %in% my_vars) %>%
+  dplyr::filter(name %in% my_vars) %>%
   select(name, label, concept)
 
 user_guide |> write.csv(here('data','raw','public','acs_values.csv'))
@@ -150,15 +159,32 @@ user_guide |> write.csv(here('data','raw','public','acs_values.csv'))
 user_guide
 ```
 
+
 ```{r Collect-ACS}
+states <- c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
+
+options(tigris_class = "sf")
+
+all_geo <- list()
+
+for (st in states) {
+  cb_geometry <- block_groups(state = st, cb = TRUE, year = 2020)
+  all_geo[[length(all_geo) + 1]] <- cb_geometry
+}
+
 acs_cb <- get_acs(
   geography = "block group",
   variables = my_vars,
-  state =  c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"),
+  state =  states,
   year = 2020,
   survey = "acs5",
-  geometry = FALSE
+  geometry = FALSE,
+  output = "wide"
 )
+
+geo_cb <- do.call(rbind, all_geo)
+
+acs_cb <- acs_cb |> left_join(geo_cb, by = "GEOID")
 ```
 
 ### HOLC Grades
@@ -246,9 +272,7 @@ total_V2 = sum(V1, na.rm = TRUE),
 
 ```
 
-Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. 
-This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
-This bianary variable will be creaed with a case/when function, using a national average of 2.61668% incomplete plumbing to determine if HOLC neighborhoods fall above or below. Neighborhoods that fall above will be assigned a 1, others will be assigned a 0. 
+Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
 ```{bianary creation}
 HOLC_aggregated <- HOLC_aggregated |>
@@ -333,10 +357,7 @@ Using a Stepwise function with the $StepAIC$ package and the HOLC Grade A as a r
 
 ## Analysis
 
-Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average. 
-Results were gathered as the Average Marginal Effects (AME) of different census-derived varaibles represented as binary values.
-
-To test potential unaccounted for geographic correlation, we will re-run using a geographic weighted regression (GWR) to assess the degree to which the proximity of similar HOLC grades effect the statistical correlation found by the original authors. 
+Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average. Results were gathered as the Average Marginal Effects (AME) of different census-derived varaibles represented as binary values.
 
 # Results
 
@@ -367,15 +388,9 @@ National Data Tables
 
 # Discussion
 
-Sterling hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. 
-The study finds evidence for this hypothesis through the correlation of lower HOLC grades and incomplete plumbing.
+Sterling III hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. The study finds evidence for this hypothesis.
 
 A successful reproduction would confirm this hypothesis with similar derived values to those found in the original study.
-Because the data transformations that are a part of this workflow are relatively simple, I would expect that there is very little margin for error in the difference of the final product from that of Sterling. 
-The one potential complication is Sterling's unsubstantiated use of either AWR or AI, which will need to be investigated. 
-Because we're not sure what method he used, our results could be slightly different depending on what package was chosen. 
-
-Comparing the results of the bianary logistic regression and the geographic weighted regression will be interesting, assessing the degree to which geographic correlation plays a role in the significance found as part of the results of this study. 
 
 # Integrity Statement
 
