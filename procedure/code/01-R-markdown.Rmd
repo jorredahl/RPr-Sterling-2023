@@ -61,6 +61,8 @@ reaggregation, which considers AWR "the simplest form of areal interpolation", a
 
 ## Computational environment
 
+This reproduction uses the: R packages
+
 ```{r environment-setup, include = FALSE}
 # record all the packages you are using here
 # this includes any calls to library(), require(),
@@ -83,7 +85,7 @@ if (!require(groundhog)) {
 
 # this date will be used to determine the versions of R and your packages
 # it is best practice to keep R and its packages up to date
-groundhog.day <- "2023-06-26"
+groundhog.day <- "2025-04-01"
 
 # this replaces any library() or require() calls
 groundhog.library(packages, groundhog.day)
@@ -135,8 +137,29 @@ economic, housing, and demographic characteristics about our nation's population
 
 See acs_values.csv at `/data/raw/public/acs_values.csv`
 
-```{r Collect-ACS}
+```{r ACS Metadata}
+my_vars <- c(total_pop_race = "B01003_001", white_pop = "B02008_001", black_pop = "B02009_001", ind_pop = "B02010_001", asian_pop = "B02011_001", hisp_pop = "B03001_003", total_pop_pl = "B17001_001", bp_pop = "B17001_002", total_hu_ten = "B25003_001", total_own = "B25003_002", total_rent = "B25003_003", total_hu_mh = "B25024_001", total_mh = "B25024_010", total_hu_age = "B25034_001", age_2014 = "B25034_002", age_2010 = "B25034_003", age_2000 = "B25034_004", age_1990 = "B25034_005", age_1980 = "B25034_006", age_1970 = "B25034_007", age_1960 = "B25034_008", age_1950 = "B25034_009", age_1940 = "B25034_010", age_1939 = "B25034_011", total_hu_plumb = "B25047_001", c_plumb = "B25047_002", ic_plumb = "B25047_003", total_pop_fb = "B05002_001", fb_pop = "B05002_013")
 
+acs_vars <- load_variables(2020, "acs5", cache = TRUE)
+
+user_guide <- acs_vars %>%
+  filter(name %in% my_vars) %>%
+  select(name, label, concept)
+
+user_guide |> write.csv(here('data','raw','public','acs_values.csv'))
+
+user_guide
+```
+
+```{r Collect-ACS}
+acs_cb <- get_acs(
+  geography = "block group",
+  variables = my_vars,
+  state =  c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"),
+  year = 2020,
+  survey = "acs5",
+  geometry = FALSE
+)
 ```
 
 ### HOLC Grades
