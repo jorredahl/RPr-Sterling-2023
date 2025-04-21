@@ -236,6 +236,10 @@ Due to massive ACS file sizes, we will first run an intersection to only do late
 ACS<- st_intersection(ACS_called, HOLC)
 ```
 
+<<<<<<< Updated upstream
+=======
+Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
+>>>>>>> Stashed changes
 
 First, remap ACS values from block groups to HOLC polygons through 'areal interpolation', using area-weighted reaggregation because we assume that's what the authors used. 
 
