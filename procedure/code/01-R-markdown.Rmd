@@ -190,7 +190,7 @@ acs_cb <- acs_cb |> left_join(geo_cb, by = "GEOID")
 
 *Unplanned Deviation* This study uses block group-level data for the foreign-born population. However, the ACS datasets have no information about place-of-birth at this level. Instead, data for foreign-born population percentage is gathered at the tract level.
 
-```{R ud-tract-acs}
+```{r ud-tract-acs}
 all_geo_t <- list()
 
 for (st in states) {
@@ -249,6 +249,53 @@ acs_t |> write_sf(here('data','raw','private','acs_tract.gpkg'))
 ```{r Collect-HOLC}
 holc_polygons<- st_read(here("data", "raw", "public", "mappinginequality.gpkg"), layer = "mappinginequality", quiet = TRUE)
 holc_polygons<- st_transform(holc_polygons, 4269)
+
+holc_polygons_fixed <- st_make_valid(holc_polygons)
+
+holc_polygons_fixed$isvalid <- st_is_valid(holc_polygons)
+
+holc_polygons_bugged <- holc_polygons_fixed |>
+  dplyr::filter(isvalid == FALSE)
+
+holc_polygons_fixed <- holc_polygons_fixed |>
+  dplyr::filter(isvalid == TRUE)
+
+holc_polygons_singlepart <- st_cast(holc_polygons_bugged, "POLYGON")
+
+holc_polygons_singlepart <- st_make_valid(holc_polygons_singlepart)
+
+holc_polygons_singlepart$isvalid <- st_is_valid(holc_polygons_singlepart)
+
+holc_polygons_singlepart <- holc_polygons_singlepart |>
+  dplyr::filter(isvalid == TRUE)
+
+holc_polygons_fixed <- holc_polygons_fixed |>
+  rbind(holc_polygons_singlepart)
+```
+
+In order to first save data, the tract and census block data should first be intersected by these HOLC polygons
+
+```{r Clip-acs}
+
+cb_intersection_indeces <- st_intersects(st_make_valid(st_as_sf(acs_cb)), holc_polygons_fixed)
+
+t_intersection_indeces <- st_intersects(st_as_sf(acs_t), holc_polygons_fixed)
+
+holc_polygons_fixed <- holc_polygons_fixed |>
+  group_by(area_id,city,state,city_survey,category,grade,label,residential,commercial,industrial,fill) |>
+  summarize(geom = st_union(geom))
+
+cb_non_empty_indeces <- which(lengths(cb_intersection_indeces) > 0)
+cb_intersects <- acs_cb[cb_non_empty_indeces, ]
+
+t_non_empty_indeces <- which(lengths(t_intersection_indeces) > 0)
+t_intersects <- acs_cb[t_non_empty_indeces, ]
+```
+
+```{r write-census-public}
+cb_intersects |> write_sf(here('data','raw','public','acs_censusblock.gpkg'))
+
+t_intersects |> write_sf(here('data','raw','public','acs_tract.gpkg'))
 ```
 
 ## Prior observations  
