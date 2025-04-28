@@ -121,6 +121,7 @@ knitr::opts_chunk$set(
   fig.width = 8,
   fig.path = paste0(here("results", "figures"), "/")
 )
+
 ```
 
 ## Data and variables
@@ -298,6 +299,10 @@ cb_intersects |> write_sf(here('data','raw','public','acs_censusblock.gpkg'))
 t_intersects |> write_sf(here('data','raw','public','acs_tract.gpkg'))
 ```
 
+```{r load acs data public}
+cb_intersects<- st_read(here('data','raw','public','acs_censusblock.gpkg'))
+t_intersects<- st_read(here('data','raw','public','acs_tract.gpkg'))
+```
 ## Prior observations  
 
 There are no prior observations related with this data.
