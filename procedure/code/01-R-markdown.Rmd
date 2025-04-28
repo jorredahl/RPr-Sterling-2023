@@ -188,7 +188,8 @@ acs_cb <- get_acs(
 | industrial | Is it industrial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 
 ```{r Collect-HOLC}
-
+holc_polygons<- st_read(here("data", "raw", "public", "mappinginequality.gpkg"), layer = "mappinginequality", quiet = TRUE)
+holc_polygons<- st_transform(holc_polygons, 4269)
 ```
 
 ## Prior observations  
