@@ -252,6 +252,8 @@ if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exi
 | commercial | Is it commercial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 | industrial | Is it industrial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 
+*Unplanned Deviation* Not all HOLC polygons have valid geometry, so invalid geometry was fixed by splitting to single parts before performing the intersects function
+
 ```{r Collect-HOLC}
 holc_polygons<- st_read(here("data", "raw", "public", "mappinginequality.gpkg"), layer = "mappinginequality", quiet = TRUE)
 holc_polygons<- st_transform(holc_polygons, 4269)
@@ -313,11 +315,10 @@ There are no prior observations related with this data.
 
 ## Bias and threats to validity
 
-Three main source of bias in this study come from the HOLC data itself, while another comes from the ACS data. 
+Three main source of bias in this study come from the HOLC data itself.
 Firstly, the spatial extent of the HOLC data only covers the centers of major cities across the united states, limiting the analysis to center-cities. 
 Secondly, 'Areal Interpolation' was used to determine census data values for each HOLC neighborhood, a method that doesn't seem logical or advisable give the study context. Some data in the study suggests that this actually was a more logical area weighted reaggregation.
-
-Additionally, it's unclear how this areal interpolation was done. Lastly, there could be a difference in results if an areal unit other than census block groups were used to perform this analysis.
+Choosing individual HOLC polygons as the study's resolution increases the threat to validity through the Modifiable Areal Unit Problem. Many of the polygons represent outdated neighborhood lines, and are limited only to populated areas from that time period. This affects the data being used to represent each neighborhood today, especially considering that area-weighted reaggregation is being used.
 
 ## Data transformations
 
