@@ -163,61 +163,67 @@ user_guide
 
 
 ```{r Collect-ACS}
-states <- c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
-
-options(tigris_class = "sf")
-
-all_geo <- list()
-
-for (st in states) {
-  cb_geometry <- block_groups(state = st, cb = TRUE, year = 2020)
-  all_geo[[length(all_geo) + 1]] <- cb_geometry
+if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exists(here('data','raw','public','acs_tract.gpkg'))) {
+  states <- c("AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
+  
+  options(tigris_class = "sf")
+  
+  all_geo <- list()
+  
+  for (st in states) {
+    cb_geometry <- block_groups(state = st, cb = TRUE, year = 2020)
+    all_geo[[length(all_geo) + 1]] <- cb_geometry
+  }
+  
+  acs_cb <- get_acs(
+    geography = "block group",
+    variables = my_vars,
+    state =  states,
+    year = 2020,
+    survey = "acs5",
+    geometry = FALSE,
+    output = "wide"
+  )
+  
+  geo_cb <- do.call(rbind, all_geo)
+  
+  acs_cb <- acs_cb |> left_join(geo_cb, by = "GEOID")
 }
-
-acs_cb <- get_acs(
-  geography = "block group",
-  variables = my_vars,
-  state =  states,
-  year = 2020,
-  survey = "acs5",
-  geometry = FALSE,
-  output = "wide"
-)
-
-geo_cb <- do.call(rbind, all_geo)
-
-acs_cb <- acs_cb |> left_join(geo_cb, by = "GEOID")
 ```
 
 *Unplanned Deviation* This study uses block group-level data for the foreign-born population. However, the ACS datasets have no information about place-of-birth at this level. Instead, data for foreign-born population percentage is gathered at the tract level.
 
 ```{r ud-tract-acs}
-all_geo_t <- list()
-
-for (st in states) {
-  t_geometry <- tracts(state = st, cb = FALSE, year = 2020)
-  all_geo_t[[length(all_geo_t) + 1]] <- t_geometry
+if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exists(here('data','raw','public','acs_tract.gpkg'))) {
+  all_geo_t <- list()
+  
+  for (st in states) {
+    t_geometry <- tracts(state = st, cb = FALSE, year = 2020)
+    all_geo_t[[length(all_geo_t) + 1]] <- t_geometry
+  }
+  
+  acs_t <- get_acs(
+    geography = "tract",
+    variables = c(total_pop_fb = "B05012_001", fb_pop = "B05012_003"),
+    state =  states,
+    year = 2020,
+    survey = "acs5",
+    geometry = FALSE,
+    output = "wide"
+  )
+  
+  geo_t <- do.call(rbind, all_geo_t)
+  
+  acs_t <- acs_t |> left_join(geo_t, by = "GEOID")
 }
-
-acs_t <- get_acs(
-  geography = "tract",
-  variables = c(total_pop_fb = "B05012_001", fb_pop = "B05012_003"),
-  state =  states,
-  year = 2020,
-  survey = "acs5",
-  geometry = FALSE,
-  output = "wide"
-)
-
-geo_t <- do.call(rbind, all_geo_t)
-
-acs_t <- acs_t |> left_join(geo_t, by = "GEOID")
 ```
 
 ``` {R write-acs-to-private}
-acs_cb |> write_sf(here('data','raw','private','acs_censusblock.gpkg'))
-
-acs_t |> write_sf(here('data','raw','private','acs_tract.gpkg'))
+if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exists(here('data','raw','public','acs_tract.gpkg'))) {
+  acs_cb |> write_sf(here('data','raw','private','acs_censusblock.gpkg'))
+  
+  acs_t |> write_sf(here('data','raw','private','acs_tract.gpkg'))
+}
 ```
 
 ### HOLC Grades
@@ -246,6 +252,8 @@ acs_t |> write_sf(here('data','raw','private','acs_tract.gpkg'))
 | residential | Is it residential? | " " | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 | commercial | Is it commercial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
 | industrial | Is it industrial? | " "  | binary (TRUE/FALSE) | N/A | TRUE/FALSE | none | none |
+
+*Unplanned Deviation* Not all HOLC polygons have valid geometry, so invalid geometry was fixed by splitting to single parts before performing the intersects function
 
 ```{r Collect-HOLC}
 holc_polygons<- st_read(here("data", "raw", "public", "mappinginequality.gpkg"), layer = "mappinginequality", quiet = TRUE)
@@ -277,26 +285,29 @@ holc_polygons_fixed <- holc_polygons_fixed |>
 In order to first save data, the tract and census block data should first be intersected by these HOLC polygons
 
 ```{r Clip-acs}
-
-cb_intersection_indeces <- st_intersects(st_make_valid(st_as_sf(acs_cb)), holc_polygons_fixed)
-
-t_intersection_indeces <- st_intersects(st_as_sf(acs_t), holc_polygons_fixed)
-
-holc_polygons_fixed <- holc_polygons_fixed |>
-  group_by(area_id,city,state,city_survey,category,grade,label,residential,commercial,industrial,fill) |>
-  summarize(geom = st_union(geom))
-
-cb_non_empty_indeces <- which(lengths(cb_intersection_indeces) > 0)
-cb_intersects <- acs_cb[cb_non_empty_indeces, ]
-
-t_non_empty_indeces <- which(lengths(t_intersection_indeces) > 0)
-t_intersects <- acs_cb[t_non_empty_indeces, ]
+if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exists(here('data','raw','public','acs_tract.gpkg'))) {
+  cb_intersection_indeces <- st_intersects(st_make_valid(st_as_sf(acs_cb)), holc_polygons_fixed)
+  
+  t_intersection_indeces <- st_intersects(st_as_sf(acs_t), holc_polygons_fixed)
+  
+  holc_polygons_fixed <- holc_polygons_fixed |>
+    group_by(area_id,city,state,city_survey,category,grade,label,residential,commercial,industrial,fill) |>
+    summarize(geom = st_union(geom))
+  
+  cb_non_empty_indeces <- which(lengths(cb_intersection_indeces) > 0)
+  cb_intersects <- acs_cb[cb_non_empty_indeces, ]
+  
+  t_non_empty_indeces <- which(lengths(t_intersection_indeces) > 0)
+  t_intersects <- acs_cb[t_non_empty_indeces, ]
+}
 ```
 
 ```{r write-census-public}
-cb_intersects |> write_sf(here('data','raw','public','acs_censusblock.gpkg'))
-
-t_intersects |> write_sf(here('data','raw','public','acs_tract.gpkg'))
+if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exists(here('data','raw','public','acs_tract.gpkg'))) {
+  cb_intersects |> write_sf(here('data','raw','public','acs_censusblock.gpkg'))
+  
+  t_intersects |> write_sf(here('data','raw','public','acs_tract.gpkg'))
+}
 ```
 
 ```{r load acs data public}
@@ -309,10 +320,10 @@ There are no prior observations related with this data.
 
 ## Bias and threats to validity
 
-Two main source of bias in this study come from the HOLC data itself, while another comes from the ACS data. 
+Three main source of bias in this study come from the HOLC data itself.
 Firstly, the spatial extent of the HOLC data only covers the centers of major cities across the united states, limiting the analysis to center-cities. 
 Secondly, 'Areal Interpolation' was used to determine census data values for each HOLC neighborhood, a method that doesn't seem logical or advisable give the study context. Some data in the study suggests that this actually was a more logical area weighted reaggregation.
-Additionally, it's unclear how this areal interpolation was done. Lastly, there could be a difference in results if an areal unit other than census block groups were used to perform this analysis.
+Choosing individual HOLC polygons as the study's resolution increases the threat to validity through the Modifiable Areal Unit Problem. Many of the polygons represent outdated neighborhood lines, and are limited only to populated areas from that time period. This affects the data being used to represent each neighborhood today, especially considering that area-weighted reaggregation is being used.
 
 ## Data transformations
 
