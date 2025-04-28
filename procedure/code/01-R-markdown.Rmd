@@ -76,7 +76,7 @@ This reproduction uses the: R packages
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
-packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "FSA")
+packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris")
 
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
@@ -130,6 +130,7 @@ the University of Richmond's Mapping Inequality Database.
 
 ### American Community Survey (ACS)
 
+- `Title`: American Community Survey (ACS)
 - `Abstract`: The ACS is a nationwide survey that collects and produces information on social, 
 economic, housing, and demographic characteristics about our nation's population every year
 - `Spatial Coverage`: United States of America
@@ -146,9 +147,9 @@ economic, housing, and demographic characteristics about our nation's population
 See acs_values.csv at `/data/raw/public/acs_values.csv`
 
 ```{r ACS Metadata}
-my_vars <- c(white_pct = "DP05_0064P", black_pct = "DP05_0065P", ind_pct = "DP05_0066P", asian_pct = "DP05_0067P", total_pop_hisp = "B03003_001", hisp_pop = "B03003_003", total_pop_pl = "B29003_001", bp_pop = "B29003_002", total_hu_ten = "B25003_001", total_own = "B25003_002", total_rent = "B25003_003", total_hu_mh = "B25024_001", total_mh = "B25024_010", total_hu_age = "B25034_001", age_2014 = "B25034_002", age_2010 = "B25034_003", age_2000 = "B25034_004", age_1990 = "B25034_005", age_1980 = "B25034_006", age_1970 = "B25034_007", age_1960 = "B25034_008", age_1950 = "B25034_009", age_1940 = "B25034_010", age_1939 = "B25034_011", total_hu_plumb = "B25047_001", c_plumb = "B25047_002", ic_plumb = "B25047_003", total_pop_fb = "B05012_001", fb_pop = "B05012_003")
+my_vars <- c(total_pop_race = "B01003_001", white_pop = "B02008_001", black_pop = "B02009_001", ind_pop = "B02010_001", asian_pop = "B02011_001", total_pop_hisp = "B03003_001", hisp_pop = "B03003_003", total_pop_pl = "B29003_001", bp_pop = "B29003_002", total_hu_ten = "B25003_001", total_own = "B25003_002", total_rent = "B25003_003", total_hu_mh = "B25024_001", total_mh = "B25024_010", total_hu_age = "B25034_001", age_2014 = "B25034_002", age_2010 = "B25034_003", age_2000 = "B25034_004", age_1990 = "B25034_005", age_1980 = "B25034_006", age_1970 = "B25034_007", age_1960 = "B25034_008", age_1950 = "B25034_009", age_1940 = "B25034_010", age_1939 = "B25034_011", total_hu_plumb = "B25047_001", c_plumb = "B25047_002", ic_plumb = "B25047_003", total_pop_fb = "B05012_001", fb_pop = "B05012_003")
 
-acs_vars <- load_variables(2020, "acs5/profile", cache = TRUE)
+acs_vars <- load_variables(2020, "acs5", cache = TRUE)
 
 user_guide <- acs_vars %>%
   dplyr::filter(name %in% my_vars) %>%
@@ -187,8 +188,40 @@ geo_cb <- do.call(rbind, all_geo)
 acs_cb <- acs_cb |> left_join(geo_cb, by = "GEOID")
 ```
 
+*Unplanned Deviation* This study uses block group-level data for the foreign-born population. However, the ACS datasets have no information about place-of-birth at this level. Instead, data for foreign-born population percentage is gathered at the tract level.
+
+```{R ud-tract-acs}
+all_geo_t <- list()
+
+for (st in states) {
+  t_geometry <- tracts(state = st, cb = FALSE, year = 2020)
+  all_geo_t[[length(all_geo_t) + 1]] <- t_geometry
+}
+
+acs_t <- get_acs(
+  geography = "tract",
+  variables = c(total_pop_fb = "B05012_001", fb_pop = "B05012_003"),
+  state =  states,
+  year = 2020,
+  survey = "acs5",
+  geometry = FALSE,
+  output = "wide"
+)
+
+geo_t <- do.call(rbind, all_geo_t)
+
+acs_t <- acs_t |> left_join(geo_t, by = "GEOID")
+```
+
+``` {R write-acs-to-private}
+acs_cb |> write_sf(here('data','raw','private','acs_censusblock.gpkg'))
+
+acs_t |> write_sf(here('data','raw','private','acs_tract.gpkg'))
+```
+
 ### HOLC Grades
 
+ `Title`: HOLC grades from the Mapping Inequality Database (MID)
 - `Abstract`: HOLC grades are historical neighborhood delineations created by the Home Owners’ Loan Corporation in the 1930s to assess mortgage lending risk. These maps were used to guide investment and disinvestment in urban areas
  and are a foundational dataset for understanding redlining and its long-term impacts.
 - `Spatial Coverage`: Select major U.S. cities
@@ -198,7 +231,7 @@ acs_cb <- acs_cb |> left_join(geo_cb, by = "GEOID")
 - `Temporal Coverage`: 1935–1940 (approximate dates of HOLC map creation)
 - `Temporal Resolution`: Single mapping effort. 
 - `Lineage`: Downloaded and used as-is.
-- `Distribution`: Data is avalible on the Mapping Inequality website [https://dsl.richmond.edu/panorama/redlining/data](https://dsl.richmond.edu/panorama/redlining/data)
+- `Distribution`: Data is avalible on the Mapping Inequality website (https://dsl.richmond.edu/panorama/redlining/data)[https://dsl.richmond.edu/panorama/redlining/data]
 - `Constraints`: Publicly available data under a [CC-by-NC 2.5 license](https://creativecommons.org/licenses/by-nc/2.5/deed.en)
 - `Data Quality`: Accurate to the degree that the original digitization of the 1930's HOLC maps was accurate. 
 
@@ -231,132 +264,13 @@ Additionally, it's unclear how this areal interpolation was done. Lastly, there 
 
 ## Data transformations
 
-**unplanned deviation from analysis plan**
-Due to massive ACS file sizes, we will first run an intersection to only do later data transformations on the block groups that intersect HOLC polygons to speed up the analysis.
-```{intersection}
-ACS<- st_intersection(ACS_called, HOLC)
-```
-
-<<<<<<< Updated upstream
-=======
-Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
->>>>>>> Stashed changes
-
-First, remap ACS values from block groups to HOLC polygons through 'areal interpolation', using area-weighted reaggregation because we assume that's what the authors used. 
-
-```{remap values}
-ACS <- ACS |>
-  mutate(area = st_area())
-
-HOLC <- HOLC |>
-  mutate(area = st_area())
-
-ACS_clipped <- st_intersection(ACS, HOLC) |>
-  mutate(area_clipped = st_area())
-
-ACS_clipped <- ACS |>
-  st_intersection(HOLC) |>
-  mutate(area_clipped = st_area()) |>
-  select(fips, area_clipped) |>
-  st_drop_geometry()
-
-ACS_combined <- left_join(ACS, ACS_clipped, by = "GeoID")
-ACS_scaled <- ACS_combined|>
-mutate(area_ratio = area/area_clipped)|>
-mutate(V1 = V1/area_ratio,
-       V2 = V2 ...
-       )
-
-ACS_for_joining <- st_join(ACS_combined, HOLC[, holc_id], join = st_intersects)
-HOLC_aggregated <- ACS_for_joining|>
-groupby(HOLC$someidentifier)|>
-summarise(total_V1 = sum(V1, na.rm = TRUE),
-total_V2 = sum(V1, na.rm = TRUE), 
-...
-)
-
-```
+First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
 Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
-```{bianary creation}
-HOLC_aggregated <- HOLC_aggregated |>
-  mutate(
-    water_access = case_when(
-      `% With Incomplete Plumbing` > 2.61668 ~ 1,
-      TRUE ~ 0
-    )
-  )
-
-data_clean <- HOLC_aggregated |>
-  select(
-    holc_id,
-    holc_grade
-    neighborho,
-    area_descr,
-    `Black Population %`,
-    `White Population %`,
-    `Indigenous American %`,
-    `Asian Population %`,
-    `Hispanic or Latino Population %`,
-    `% Below Poverty Line`,
-    `% Housing Units Owned`,
-    `% Housing Units Rented`,
-    `% Mobile Homes`,
-    `% Homes before 1980`,
-    `% Homes after 1980`,
-    `% With Complete Plumbing`,
-    `% With Incomplete Plumbing`,
-    `% Foreign Born`,
-    Shape_Area,
-    water_access
-  )
-
-```
-
-Data will now be verified using the supplementary tables by subtracting them from the calculated data, which should result in zeros across the board. 
-This is somewhat of a test of whether the authors actually did in fact use area weighted reaggregation or areal interpolation; if they used AWI, our results should match.
-Additionally, because the reaggregation was done in a Python package this will test the similarities/differences of our implementation. 
-
-The chosen method to test the accuracy of the data is to compare it to the regional summary statistics, presented in table 1 (results/tables/original/table_1.csv). I'll split data_clean rows into regions, 
-calculate summary stats for them, compile into a single df, and then subtract them from table 1. 
-
-```{test AWI}
-sd_midwest<- read_csv("data/derived/public/original/sd_midwest.csv")
-sd_northeast<- read_csv("data/derived/public/original/sd_northeast.csv")
-sd_south<- read_csv("data/derived/public/original/sd_south.csv")
-sd_west<- read_csv("data/derived/public/original/sd_west.csv")
-
-sd_midwest_testing <- sd_midwest[, 2:ncolumn(sd_midwest)]
-sd_midwest_testing <- sd_northeast[, 2:ncolumn(sd_northeast)]
-sd_midwest_testing <- sd_south[, 2:ncolumn(sd_south)]
-sd_midwest_testing <- sd_west[, 2:ncolumn(sd_west)]
-
-
-
-data_test <- data_clean %>% select(-holc_grade)
-test1<- data_test-national_testing
-
-kbl(test1) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
-  column_spec(1, bold = TRUE) %>%
-  scroll_box(width = "100%", height = "400px")
-```
-
+This data can then be verified with the Supplementary Data Tables.
 
 Then, use the Dunn Test to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades and compared with supplementary table 1.
-
-```{dunn test}
-Dunntest<- dunnTest(`% With Incomplete Plumbing` ~ holc_grade, data = data_clean) #dunn test
-original_dunn_results<- st_read("results/tables/original/table_s1.csv)
-test2<- (Dunntest - original_dunn_results) #subtracting for comparison
-
-kbl(test2) %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
-  column_spec(1, bold = TRUE) %>%
-  scroll_box(width = "100%", height = "400px")
-```
-
 
 Using a Stepwise function with the $StepAIC$ package and the HOLC Grade A as a reference group, we can gather a correlation table to remove the highest correlation values. In this case, the highest correlation value will be removed, and compared with supplementary table 2.
 
