@@ -294,7 +294,7 @@ if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exi
   cb_intersects <- acs_cb[cb_non_empty_indeces, ]
   
   t_non_empty_indeces <- which(lengths(t_intersection_indeces) > 0)
-  t_intersects <- acs_cb[t_non_empty_indeces, ]
+  t_intersects <- acs_t[t_non_empty_indeces, ]
 }
 ```
 
@@ -331,15 +331,20 @@ Choosing individual HOLC polygons as the study's resolution increases the threat
 
 First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
-```{remap values}
-ACS <- ACS |>
-  mutate(area = st_area())
+```{r remap values}
+cb_intersects <- cb_intersects |>
+  mutate(area = st_area(geom))
 
-HOLC <- HOLC |>
-  mutate(area = st_area())
+t_intersects <- t_intersects |>
+  mutate(area = st_area(geom))
 
-ACS_clipped <- st_intersection(ACS, HOLC) |>
-  mutate(area_clipped = st_area())
+cb_clipped <- st_intersection(cb_intersects, holc_polygons_fixed) |>
+  mutate(area_clipped = st_area(geom),
+         awr = area_clipped / area)
+
+t_clipped <- st_intersection(t_intersects, holc_polygons_fixed) |>
+  mutate(area_clipped = st_area(geom),
+         awr = area_clipped / area)
 
 ACS_clipped <- ACS |>
   st_intersection(HOLC) |>
