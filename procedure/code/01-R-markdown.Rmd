@@ -333,12 +333,59 @@ First, remap ACS values from block groups to HOLC polygons through areal interpo
 
 ```{r remap values}
 cb_intersects <- cb_intersects |>
-  mutate(area = st_area(geom))
+  mutate(area = st_area(geom),
+         row = row_number())
 
 t_intersects <- t_intersects |>
-  mutate(area = st_area(geom))
+  mutate(area = st_area(geom),
+         row = row_number())
 
-cb_clipped <- st_intersection(cb_intersects, holc_polygons_fixed) |>
+holc_polygons_fixed$row <- 1:nrow(holc_polygons_fixed)
+
+cb_intersection_indeces_2 <- st_intersects(cb_intersects, holc_polygons_fixed)
+
+all_clip_cb <- list()
+
+for (i in cb_intersects$row) {
+  holc_curr <- cb_intersection_indeces_2[[i]]
+  
+  holc_filtered <- holc_polygons_fixed |>
+    dplyr::filter(row %in% holc_curr)
+  
+  cb_filtered <- cb_intersects |>
+    dplyr::filter(row == i)
+  
+  cb_clip_st <- st_intersection(cb_filtered, holc_filtered)
+  
+  all_clip_cb[[length(all_clip_cb) + 1]] <- cb_clip_st
+  
+  message(i)
+}
+
+templist1 <- all_clip_cb
+
+while (length(templist1) > 1) {
+  templist2 <- list()
+  
+  for (i in (1:((length(templist1) + 1)/2))) {
+    if ((2 * i) <= length(templist1)) {
+      templist2[[length(templist2) + 1]] <- rbind(templist1[[2 * i - 1]], templist1[[2 * i]])
+    } else {
+      templist2[[length(templist2) + 1]] <- templist1[[2 * i - 1]]
+    }
+    
+    message(i)
+  }
+  
+  templist1 <- templist2
+}
+
+cb_clipped <- st_as_sf(templist1[[1]])
+
+cb_clipped |>
+  write_sf(here('data','raw','public','acs_censusblock_intersected.gpkg'))
+
+cb_clipped <- cb_clipped |>
   mutate(area_clipped = st_area(geom),
          awr = area_clipped / area)
 
