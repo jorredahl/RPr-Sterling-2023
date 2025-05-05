@@ -416,15 +416,14 @@ After performing AWR on the HOLC polygons, we are left with significantly less g
 Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
 
-```{bianary creation}
+```{r bianary creation and cleaning}
 HOLC_polygons <- HOLC_polygons |>
   mutate(
     water_access = case_when(
       `ic_plumbE` > 2.61668 ~ 1,
       TRUE ~ 0
     )
-  )|>#assigning a binary variable to plumbing access- 1 if the incomplete plumbing percentage is higher than the national average, 0 if it is lower than the national average. 
-  mutate(holc_grade = )
+  )#assigning a binary variable to plumbing access- 1 if the incomplete plumbing percentage is higher than the national average, 0 if it is lower than the national average. 
 
 
 
@@ -433,24 +432,21 @@ HOLC_polygons <- HOLC_polygons |>
 data_clean <- HOLC_polygons |>
   mutate(
     holc_id = area_id,
-    holc_grade = ,
-    neighborhood = ,
-    area_descr = ,
-    black_pct = ,
-    White_pop = ,
-    Indig_pop = ,
-    Asian_pop = ,
-    Hispan_Latino_pop= ,
-    pct_below_poverty= ,
-    pct_home_ownership= ,
-    pct_renters= ,
-    pct_mobile_homes= ,
-    pct_pre_1980= ,
-    pct_post_1980= ,
-    pct_complete_plumb= ,
-    pct_incomplete_plumb = ,
-    area = ,
-    water_access =
+    holc_grade = grade,
+    black_pct = black_popE,
+    White_pop = white_popE,
+    Indig_pop = ind_popE,
+    Asian_pop = asian_popE,
+    Hispan_Latino_pop = hisp_popE / total_pop_hispE,
+    pct_below_poverty = total_pop_plE,
+    pct_home_ownership = total_ownE,
+    pct_renters = total_rentE,
+    pct_mobile_homes = total_mhE / total_hu_mhE,
+    pct_pre_1980 = age_1939E + age_1940E + age_1950E + age_1960E + age_1970E,
+    pct_post_1980 = age_1980E + age_1990E + age_2000E + age_2010E + age_2014E,
+    pct_complete_plumb = c_plumbE / total_hu_plumbE,
+    pct_incomplete_plumb = ic_plumbE / total_hu_plumbE,
+    water_access = water_access
   )
 
 ```
