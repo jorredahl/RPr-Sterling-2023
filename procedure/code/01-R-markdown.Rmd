@@ -76,7 +76,7 @@ This reproduction uses the: R packages
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
-packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix")
+packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix", "MASS", "knitr", "kableExtra")
 
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
@@ -433,19 +433,19 @@ data_clean <- HOLC_polygons |>
   mutate(
     holc_id = area_id,
     holc_grade = grade,
-    black_pct = black_popE,
-    White_pop = white_popE,
-    Indig_pop = ind_popE,
-    Asian_pop = asian_popE,
-    Hispan_Latino_pop = hisp_popE / total_pop_hispE,
-    pct_below_poverty = total_pop_plE,
-    pct_home_ownership = total_ownE,
-    pct_renters = total_rentE,
-    pct_mobile_homes = total_mhE / total_hu_mhE,
-    pct_pre_1980 = age_1939E + age_1940E + age_1950E + age_1960E + age_1970E,
-    pct_post_1980 = age_1980E + age_1990E + age_2000E + age_2010E + age_2014E,
-    pct_complete_plumb = c_plumbE / total_hu_plumbE,
-    pct_incomplete_plumb = ic_plumbE / total_hu_plumbE,
+    black_pct = (black_popE / total_pop_raceE) * 100,
+    white_pct = (white_popE / total_pop_raceE) * 100,
+    indig_pct = (ind_popE / total_pop_raceE) * 100,
+    asian_pct = (asian_popE / total_pop_raceE) * 100,
+    hispan_Latino_pct = (hisp_popE / total_pop_hispE) * 100,
+    pct_below_poverty = (bp_popE / total_pop_plE) * 100,
+    pct_home_ownership = (total_ownE / total_hu_tenE) * 100,
+    pct_renters = (total_rentE / total_hu_tenE) * 100,
+    pct_mobile_homes = (total_mhE / total_hu_mhE) * 100,
+    pct_pre_1980 = ((age_1939E + age_1940E + age_1950E + age_1960E + age_1970E) / total_hu_ageE) * 100,
+    pct_post_1980 = ((age_1980E + age_1990E + age_2000E + age_2010E + age_2014E) / total_hu_ageE) * 100,
+    pct_complete_plumb = (c_plumbE / total_hu_plumbE) * 100,
+    pct_incomplete_plumb = (ic_plumbE / total_hu_plumbE) * 100,
     water_access = water_access
   )
 
@@ -458,21 +458,55 @@ This is somewhat of a test of whether the authors actually did in fact use area 
 The total number of observations in the summary statistics tables is 8878, 736 less than our AWI results. While we lost some  polygons through the scaling, the original authors, using a python package, lost many more than we did. It'll be interesting to see how different results are, as this is likely the cause of much of the potential difference between the datasets. 
 
 
-```{test AWI}
-sd_midwest<- read_csv("data/derived/public/original/sd_midwest.csv")
-sd_northeast<- read_csv("data/derived/public/original/sd_northeast.csv")
-sd_south<- read_csv("data/derived/public/original/sd_south.csv")
-sd_west<- read_csv("data/derived/public/original/sd_west.csv")
+```{r test AWI}
 
-sd_midwest_testing <- sd_midwest[, 2:ncolumn(sd_midwest)]
-sd_midwest_testing <- sd_northeast[, 2:ncolumn(sd_northeast)]
-sd_midwest_testing <- sd_south[, 2:ncolumn(sd_south)]
-sd_midwest_testing <- sd_west[, 2:ncolumn(sd_west)]
+#sd_midwest<- read_csv("data/derived/public/original/sd_midwest.csv")
+#sd_northeast<- read_csv("data/derived/public/original/sd_northeast.csv")
+#sd_south<- read_csv("data/derived/public/original/sd_south.csv")
+#sd_west<- read_csv("data/derived/public/original/sd_west.csv")
 
+#sd_midwest_testing <- sd_midwest[, 2:ncolumn(sd_midwest)]
+#sd_northeast_testing <- sd_northeast[, 2:ncolumn(sd_northeast)]
+#sd_south_testing <- sd_south[, 2:ncolumn(sd_south)]
+#sd_west_testing <- sd_west[, 2:ncolumn(sd_west)]
 
+sd_national <- read_csv(here('data','derived','public','original','sd_national.csv'))
 
-data_test <- data_clean %>% select(-holc_grade)
-test1<- data_test-national_testing
+testing_national <- sd_national |>
+  rename(area_id = 'neighborho') |>
+  left_join(data_clean, by = 'area_id')
+
+test1 <- testing_national |>
+  mutate(
+    black_pct_diff = abs(`Black Population %` - black_pct),
+    white_pct_diff = abs(`White Population %` - white_pct),
+    indig_pct_diff = abs(`Indigenous American %` - indig_pct),
+    asian_pct_diff = abs(`Asian Population %` - asian_pct),
+    hispan_Latino_pct_diff = abs(`Hispanic or Latino Population %` - hispan_Latino_pct),
+    pct_below_poverty_diff = abs(`% Below Poverty Line` - pct_below_poverty),
+    pct_home_ownership_diff = abs(`% Housing Units Owned` - pct_home_ownership),
+    pct_renters_diff = abs(`% Housing Units Rented` - pct_renters),
+    pct_mobile_homes_diff = abs(`% Mobile Homes` - pct_mobile_homes),
+    pct_pre_1980_diff = abs(`% 1970-1979 or older` - pct_pre_1980),
+    pct_post_1980_diff = abs(`% 1980-1989 or newer` - pct_post_1980),
+    pct_complete_plumb_diff = abs(`% With Complete Plumbing` - pct_complete_plumb),
+    pct_incomplete_plumb_diff = abs(`% With Incomplete Plumbing` - pct_incomplete_plumb),
+  ) |> 
+  summarize(
+    black_pct_diff = mean(black_pct_diff, na.rm = TRUE),
+    white_pct_diff = mean(white_pct_diff, na.rm = TRUE),
+    indig_pct_diff = mean(indig_pct_diff, na.rm = TRUE),
+    asian_pct_diff = mean(asian_pct_diff, na.rm = TRUE),
+    hispan_Latino_pct_diff = mean(hispan_Latino_pct_diff, na.rm = TRUE),
+    pct_below_poverty_diff = mean(pct_below_poverty_diff, na.rm = TRUE),
+    pct_home_ownership_diff = mean(pct_home_ownership_diff, na.rm = TRUE),
+    pct_renters_diff = mean(pct_renters_diff, na.rm = TRUE),
+    pct_mobile_homes_diff = mean(pct_mobile_homes_diff, na.rm = TRUE),
+    pct_pre_1980_diff = mean(pct_pre_1980_diff, na.rm = TRUE),
+    pct_post_1980_diff = mean(pct_post_1980_diff, na.rm = TRUE),
+    pct_complete_plumb_diff = mean(pct_complete_plumb_diff, na.rm = TRUE),
+    pct_incomplete_plumb_diff = mean(pct_incomplete_plumb_diff, na.rm = TRUE),
+  )
 
 kbl(test1) %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>%
