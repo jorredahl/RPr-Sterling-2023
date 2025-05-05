@@ -76,7 +76,7 @@ This reproduction uses the: R packages
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
-packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix", "MASS", "knitr", "kableExtra")
+packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix", "MASS", "knitr", "kableExtra", "rstatix")
 
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
@@ -517,8 +517,6 @@ kbl(test1) %>%
 Then, use the Dunn Test in the to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades and compared with supplementary table 1.
 
 ```{r dunn test}
-library(rstatix)
-
 Dunntest<- dunn_test(pct_incomplete_plumb ~ holc_grade, data = data_clean) #dunn test
 Dunntest<-Dunntest|>
   mutate(
@@ -544,6 +542,50 @@ The dunn test result is extremely different, with the test Z statistic consisten
 
 Using a stepAIC function within the $MASS$ package and the HOLC Grade A as a reference group, we can gather a correlation table to remove the highest correlation values before our regression analysis. In this case, the highest correlation value will be removed to match the original methodology before being compared with supplementary table 2.
 
+``` {r correlation table}
+data_clean_selected <- data_clean |>
+  dplyr::select(holc_grade, black_pct, white_pct, indig_pct, asian_pct, hispan_Latino_pct, pct_below_poverty, pct_renters, pct_mobile_homes, pct_post_1980, pct_incomplete_plumb) |>
+  mutate(holc_grade_A = case_when(holc_grade == "A"~1.0,
+                                  TRUE~0.0),
+         holc_grade_B = case_when(holc_grade == "B"~1.0,
+                                  TRUE~0.0),
+         holc_grade_C = case_when(holc_grade == "C"~1.0,
+                                  TRUE~0.0),
+         holc_grade_D = case_when(holc_grade == "D"~1.0,
+                                  TRUE~0.0)) |>
+  dplyr::select(-holc_grade) |>
+  st_drop_geometry() |>
+  dplyr::filter(!is.na(black_pct)) |>
+  dplyr::filter(!is.na(pct_renters))
+
+kable(cor(data_clean_selected))
+```
+
+```{r initial model}
+data_clean_binary <- data_clean_selected |>
+  mutate(black_pct = case_when(black_pct>mean(data_clean_selected$black_pct)~1,
+                               TRUE~0),
+         white_pct = case_when(white_pct>mean(data_clean_selected$white_pct)~1,
+                               TRUE~0),
+         indig_pct = case_when(indig_pct>mean(data_clean_selected$indig_pct)~1,
+                               TRUE~0),
+         asian_pct = case_when(asian_pct>mean(data_clean_selected$asian_pct)~1,
+                               TRUE~0),
+         hispan_Latino_pct = case_when(hispan_Latino_pct>mean(data_clean_selected$hispan_Latino_pct)~1,
+                               TRUE~0),
+         pct_below_poverty = case_when(pct_below_poverty>mean(data_clean_selected$pct_below_poverty)~1,
+                               TRUE~0),
+         pct_renters = case_when(pct_renters>mean(data_clean_selected$pct_renters)~1,
+                               TRUE~0),
+         pct_post_1980 = case_when(pct_post_1980>mean(data_clean_selected$pct_post_1980)~1,
+                               TRUE~0),
+         pct_incomplete_plumb = case_when(pct_incomplete_plumb>mean(data_clean_selected$pct_incomplete_plumb)~1,
+                               TRUE~0),
+         pct_mobile_homes = case_when(pct_mobile_homes>mean(data_clean_selected$pct_mobile_homes)~1,
+                               TRUE~0))
+
+initial_model <- glm(pct_incomplete_plumb~.,family = binomial, data = data_clean_binary)
+```
 
 
 
