@@ -331,7 +331,7 @@ Choosing individual HOLC polygons as the study's resolution increases the threat
 
 First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
-```{r remap values}
+```{r intersection sf}
 cb_intersects <- cb_intersects |>
   mutate(area = st_area(geom),
          row = row_number())
@@ -385,70 +385,72 @@ cb_clipped <- st_as_sf(templist1[[1]])
 cb_clipped |>
   write_sf(here('data','raw','public','acs_censusblock_intersected.gpkg'))
 
-cb_clipped <- cb_clipped |>
-  mutate(area_clipped = st_area(geom),
-         awr = area_clipped / area)
-
-t_clipped <- st_intersection(t_intersects, holc_polygons_fixed) |>
-  mutate(area_clipped = st_area(geom),
-         awr = area_clipped / area)
-
-ACS_clipped <- ACS |>
-  st_intersection(HOLC) |>
-  mutate(area_clipped = st_area()) |>
-  select(fips, area_clipped) |>
-  st_drop_geometry()
-
-ACS_combined <- left_join(ACS, ACS_clipped, by = "GeoID")
-ACS_scaled <- ACS_combined|>
-mutate(area_ratio = area/area_clipped)|>
-mutate(V1 = V1/area_ratio,
-       V2 = V2 ...
-       )
-
-ACS_for_joining <- st_join(ACS_combined, HOLC[, holc_id], join = st_intersects)
-HOLC_aggregated <- ACS_for_joining|>
-groupby(HOLC$someidentifier)|>
-summarise(total_V1 = sum(V1, na.rm = TRUE),
-total_V2 = sum(V1, na.rm = TRUE), 
-...
-)
-
 ```
+
+```{r area-weighted reaggregation}
+cb_clipped <- st_read(here('data', 'raw', 'public', 'acs_censusblock_intersected.gpkg'))
+
+cb_clipped <- cb_clipped |>
+  dplyr::filter(
+    st_geometry_type(cb_clipped) %in% c("POLYGON")  #selecting only the polygon geometries
+  )
+
+cb_clipped <- cb_clipped |>
+  mutate(area_clipped = st_area(geom))|>
+  mutate(awr = as.numeric(area_clipped/area))
+
+scaled_cb_clipped <- cb_clipped |>
+  mutate(across(3:62, ~ as.numeric(.x) * as.numeric(awr)))
+
+HOLC_polygons <- scaled_cb_clipped %>%
+  group_by(area_id, grade) %>%
+  summarize(across(3:62, sum, na.rm = TRUE),       
+            geometry = st_union(geom)) %>%     
+  ungroup()
+
+plot(HOLC_polygons)
+```
+
+After performing AWR on the HOLC polygons, we are left with significantly less geometries than we started with (10154 originally vs. 9614 after re-aggregation). I am not sure why, and we should likely figure it out. 
 
 Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
+
 ```{bianary creation}
-HOLC_aggregated <- HOLC_aggregated |>
+HOLC_polygons <- HOLC_polygons |>
   mutate(
     water_access = case_when(
-      `% With Incomplete Plumbing` > 2.61668 ~ 1,
+      `ic_plumbE` > 2.61668 ~ 1,
       TRUE ~ 0
     )
-  )
+  )|>#assigning a binary variable to plumbing access- 1 if the incomplete plumbing percentage is higher than the national average, 0 if it is lower than the national average. 
+  mutate(holc_grade = )
 
-data_clean <- HOLC_aggregated |>
-  select(
-    holc_id,
-    holc_grade
-    neighborho,
-    area_descr,
-    `Black Population %`,
-    `White Population %`,
-    `Indigenous American %`,
-    `Asian Population %`,
-    `Hispanic or Latino Population %`,
-    `% Below Poverty Line`,
-    `% Housing Units Owned`,
-    `% Housing Units Rented`,
-    `% Mobile Homes`,
-    `% Homes before 1980`,
-    `% Homes after 1980`,
-    `% With Complete Plumbing`,
-    `% With Incomplete Plumbing`,
-    `% Foreign Born`,
-    Shape_Area,
-    water_access
+
+
+
+
+data_clean <- HOLC_polygons |>
+  mutate(
+    holc_id = area_id,
+    holc_grade = ,
+    neighborhood = ,
+    area_descr = ,
+    black_pct = ,
+    White_pop = ,
+    Indig_pop = ,
+    Asian_pop = ,
+    Hispan_Latino_pop= ,
+    pct_below_poverty= ,
+    pct_home_ownership= ,
+    pct_renters= ,
+    pct_mobile_homes= ,
+    pct_pre_1980= ,
+    pct_post_1980= ,
+    pct_complete_plumb= ,
+    pct_incomplete_plumb = ,
+    area = ,
+    water_access =
   )
 
 ```
