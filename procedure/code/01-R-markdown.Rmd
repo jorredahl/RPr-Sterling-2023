@@ -332,59 +332,60 @@ Choosing individual HOLC polygons as the study's resolution increases the threat
 First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
 ```{r intersection sf}
-cb_intersects <- cb_intersects |>
+if (!file.exists(here('data','raw','public','acs_censusblock_intersected.gpkg'))) {
+  cb_intersects <- cb_intersects |>
   mutate(area = st_area(geom),
          row = row_number())
 
-t_intersects <- t_intersects |>
-  mutate(area = st_area(geom),
-         row = row_number())
-
-holc_polygons_fixed$row <- 1:nrow(holc_polygons_fixed)
-
-cb_intersection_indeces_2 <- st_intersects(cb_intersects, holc_polygons_fixed)
-
-all_clip_cb <- list()
-
-for (i in cb_intersects$row) {
-  holc_curr <- cb_intersection_indeces_2[[i]]
+  t_intersects <- t_intersects |>
+    mutate(area = st_area(geom),
+           row = row_number())
   
-  holc_filtered <- holc_polygons_fixed |>
-    dplyr::filter(row %in% holc_curr)
+  holc_polygons_fixed$row <- 1:nrow(holc_polygons_fixed)
   
-  cb_filtered <- cb_intersects |>
-    dplyr::filter(row == i)
+  cb_intersection_indeces_2 <- st_intersects(cb_intersects, holc_polygons_fixed)
   
-  cb_clip_st <- st_intersection(cb_filtered, holc_filtered)
+  all_clip_cb <- list()
   
-  all_clip_cb[[length(all_clip_cb) + 1]] <- cb_clip_st
-  
-  message(i)
-}
-
-templist1 <- all_clip_cb
-
-while (length(templist1) > 1) {
-  templist2 <- list()
-  
-  for (i in (1:((length(templist1) + 1)/2))) {
-    if ((2 * i) <= length(templist1)) {
-      templist2[[length(templist2) + 1]] <- rbind(templist1[[2 * i - 1]], templist1[[2 * i]])
-    } else {
-      templist2[[length(templist2) + 1]] <- templist1[[2 * i - 1]]
-    }
+  for (i in cb_intersects$row) {
+    holc_curr <- cb_intersection_indeces_2[[i]]
+    
+    holc_filtered <- holc_polygons_fixed |>
+      dplyr::filter(row %in% holc_curr)
+    
+    cb_filtered <- cb_intersects |>
+      dplyr::filter(row == i)
+    
+    cb_clip_st <- st_intersection(cb_filtered, holc_filtered)
+    
+    all_clip_cb[[length(all_clip_cb) + 1]] <- cb_clip_st
     
     message(i)
   }
   
-  templist1 <- templist2
+  templist1 <- all_clip_cb
+  
+  while (length(templist1) > 1) {
+    templist2 <- list()
+    
+    for (i in (1:((length(templist1) + 1)/2))) {
+      if ((2 * i) <= length(templist1)) {
+        templist2[[length(templist2) + 1]] <- rbind(templist1[[2 * i - 1]], templist1[[2 * i]])
+      } else {
+        templist2[[length(templist2) + 1]] <- templist1[[2 * i - 1]]
+      }
+      
+      message(i)
+    }
+    
+    templist1 <- templist2
+  }
+  
+  cb_clipped <- st_as_sf(templist1[[1]])
+  
+  cb_clipped |>
+    write_sf(here('data','raw','public','acs_censusblock_intersected.gpkg'))
 }
-
-cb_clipped <- st_as_sf(templist1[[1]])
-
-cb_clipped |>
-  write_sf(here('data','raw','public','acs_censusblock_intersected.gpkg'))
-
 ```
 
 ```{r area-weighted reaggregation}
@@ -538,27 +539,34 @@ kbl(test2) %>%
   column_spec(1, bold = TRUE) 
 ```
 
-The dunn test result is extremely different, with the test Z statistic consistently negative in the original Dunn results and consistently positive, almost to the same degree. All of the pariwise differences are still statistically significant, which matches the findings of the original authors. 
+The Dunn test result is extremely different, with the test Z statistic consistently negative in the original Dunn results and consistently positive, almost to the same degree. All of the pairwise differences are still statistically significant, which matches the findings of the original authors. 
 
-Using a stepAIC function within the $MASS$ package and the HOLC Grade A as a reference group, we can gather a correlation table to remove the highest correlation values before our regression analysis. In this case, the highest correlation value will be removed to match the original methodology before being compared with supplementary table 2.
+## Analysis
+
+Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average.
+
+Using a stepAIC function within the $MASS$ package and the HOLC Grade A as a reference group, we can remove microcolinearity for the final regression analysis. In this case, high correlation pair values will be removed to match the original methodology, a visual of the correlation table is also available.
 
 ``` {r correlation table}
 data_clean_selected <- data_clean |>
   dplyr::select(holc_grade, black_pct, white_pct, indig_pct, asian_pct, hispan_Latino_pct, pct_below_poverty, pct_renters, pct_mobile_homes, pct_post_1980, pct_incomplete_plumb) |>
-  mutate(holc_grade_A = case_when(holc_grade == "A"~1.0,
-                                  TRUE~0.0),
-         holc_grade_B = case_when(holc_grade == "B"~1.0,
-                                  TRUE~0.0),
-         holc_grade_C = case_when(holc_grade == "C"~1.0,
-                                  TRUE~0.0),
-         holc_grade_D = case_when(holc_grade == "D"~1.0,
-                                  TRUE~0.0)) |>
-  dplyr::select(-holc_grade) |>
   st_drop_geometry() |>
   dplyr::filter(!is.na(black_pct)) |>
   dplyr::filter(!is.na(pct_renters))
 
-kable(cor(data_clean_selected))
+data_clean_selected$holc_grade <- factor(data_clean_selected$holc_grade)
+data_clean_selected$holc_grade <- relevel(data_clean_selected$holc_grade, ref = "A")
+
+kable(cor(data_clean_selected |>
+            mutate(holc_gradeA = case_when(holc_grade == "A"~1,
+                                           TRUE~0),
+                   holc_gradeB = case_when(holc_grade == "B"~1,
+                                           TRUE~0),
+                   holc_gradeC = case_when(holc_grade == "C"~1,
+                                           TRUE~0),
+                   holc_gradeD = case_when(holc_grade == "D"~1,
+                                           TRUE~0)) |>
+            dplyr::select(-holc_grade)))
 ```
 
 ```{r initial model}
@@ -584,14 +592,46 @@ data_clean_binary <- data_clean_selected |>
          pct_mobile_homes = case_when(pct_mobile_homes>mean(data_clean_selected$pct_mobile_homes)~1,
                                TRUE~0))
 
-initial_model <- glm(pct_incomplete_plumb~.,family = binomial, data = data_clean_binary)
+initial_model <- glm(pct_incomplete_plumb~holc_grade + .,family = binomial, data = data_clean_binary)
+
+final_model <- stepAIC(initial_model, direction = "both")
 ```
 
+Results used Average Marginal Effects (AME) using the $margins$ package to gather different census-derived variables represented as binary values. Here, the results of the reproduction's model are compared with that of the original model.
 
+*Unplanned Deviation* The average marginal effects results have some factors that are not designed to be used, with holc grades of A, E, F, and other variables that seem to end with a space. Additionally, reducing microcolinearity seemed to remove the indigenous population variable, rather than the white population variable.
 
-## Analysis
+``` {r AME}
 
-Sterling III's original study used a binary logistic regression model to compare categorical hold grades and a census block group's binary desigantion of whether plumbing rates were above or below average. Results were gathered as the Average Marginal Effects (AME) of different census-derived varaibles represented as binary values.
+ame <- margins(final_model) |>
+  summary() |>
+  dplyr::filter(!(factor %in% c("holc_grade", "holc_grade ", "holc_gradeA ", "holc_gradeC ", "holc_gradeE", "holc_gradeF", "white_pct"))) |>
+  mutate(factor = case_when(factor == "asian_pct"~"Asian population percent",
+                           factor == "black_pct"~"Black population percent",
+                           factor == "hispan_Latino_pct"~"Hispanic or Latino population percent",
+                           factor == "holc_gradeB"~"HOLC B",
+                           factor == "holc_gradeC"~"HOLC C",
+                           factor == "holc_gradeD"~"HOLC D",
+                           factor == "pct_below_poverty"~"Percent below the poverty line",
+                           factor == "pct_below_poverty"~"Percent below the poverty line",
+                           factor == "pct_mobile_homes"~"Percent of mobile homes",
+                           factor == "pct_post_1980"~"Percent of houses built in 1980 or later")) |>
+  dplyr::select(factor, AME)
+
+original_ame <- read.csv(here("results","tables","original","table_1.csv")) |>
+  dplyr::select(Variable, National) |>
+  rename(factor = 'Variable',
+         original_AME = "National") |>
+  dplyr::filter(!(factor %in% c("Indigenous population percent", "Foreign-born population percent", "Percent of housing units rented")))
+
+difference <- ame |> 
+  left_join(original_ame, by = "factor") |>
+  mutate(difference = abs(AME - original_AME))
+
+kable(difference)
+```
+
+Here the difference is very noticeable among race/ethnicity related data and poverty line data, but among all other factors, the difference remains very small. Notable, the AME values are very similar across HOLC values.
 
 # Results
 
