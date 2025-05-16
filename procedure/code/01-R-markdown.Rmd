@@ -154,7 +154,7 @@ acs_vars <- load_variables(2020, "acs5", cache = TRUE)
 
 user_guide <- acs_vars %>%
   dplyr::filter(name %in% my_vars) %>%
-  select(name, label, concept)
+  dplyr::select(name, label, concept)
 
 user_guide |> write.csv(here('data','raw','public','acs_values.csv'))
 
@@ -597,7 +597,7 @@ initial_model <- glm(pct_incomplete_plumb~holc_grade + .,family = binomial, data
 final_model <- stepAIC(initial_model, direction = "both")
 ```
 
-Results used Average Marginal Effects (AME) using the $margins$ package to gather different census-derived variables represented as binary values. Here, the results of the reproduction's model are compared with that of the original model.
+Sterling calculates Average Marginal Effects (AME) using the $margins$ package to gather different census-derived variables represented as binary values. Here, the results of the reproduction's model are compared with that of the original model.
 
 *Unplanned Deviation* The average marginal effects results have some factors that are not designed to be used, with holc grades of A, E, F, and other variables that seem to end with a space. Additionally, reducing microcolinearity seemed to remove the indigenous population variable, rather than the white population variable.
 
@@ -635,18 +635,155 @@ Here the difference is very noticeable among race/ethnicity related data and pov
 
 # Results
 
-Data is presented as 3 figures, 2 tables, and 7 supplementary tables:
+Data is presented as 3 figures, 2 tables, and 7 supplementary tables. We'll reproduce each figure and note differences between our reproduction and the figures from the original table. 
 
 Figures:
 
-- Map of HOLC grades for different cities across regions
+- Map of HOLC grades for different cities across regions. Sterling presents maps of St. Louis, Buffalo, Oakland, and Birmingham. We choose to only recreate one of the four, St. Louis, trusing that if it matches others also likely do too.
+
+```{r map of holc zones st louis}
+subset<- holc_polygons_fixed|>
+  dplyr::select(area_id, city)|>
+  st_drop_geometry()
+
+data_clean<- left_join(data_clean, subset, by= "area_id")
+
+data_clean|>
+  dplyr::filter(city == "St. Louis")|>
+  drop_na()|>
+  ggplot()+
+  geom_sf(aes(fill= holc_grade))+
+  scale_fill_manual(
+    values = c("green","blue", "yellow", "red")) +
+  theme_minimal()
+```
+This map is somewhat different than Sterling's map, revealing one of the potential reasons behind differing values in our AME and other various comparisons. A different set of HOLC polygons is mapped in this version than in Sterling's results, but despite us ending up with MORE polygons in our analysis total, we seem to be missing several of the holc zones/sections of the map. 
+
+I will map another city to make test and see if this is widespread. 
+
+```{r buffalo}
+data_clean|>
+  dplyr::filter(city == "Buffalo")|>
+  drop_na()|>
+  ggplot()+
+  geom_sf(aes(fill= holc_grade))+
+  scale_fill_manual(
+    values = c("green","blue", "yellow", "red")) +
+  theme_minimal()
+```
+
+The map of buffalo is much more intact, with only one or two sections across the city missing. The source of this loss is random- it could have to do with our multipart to single part transformation, the removal of broken geometries (of which we had more in r than in ArcGIS), or somewhere in our AWR step. 
+
 - Correlation plot for potential predictive variables
+
+```{r correlation table}
+corr_matrix <- cor(data_clean_selected, use = "complete.obs")
+
+ggcorrplot(corr_matrix, 
+           method = "square", 
+           type = "lower", 
+           lab = TRUE, 
+           colors = c("blue", "white", "red"),
+           title = "Correlation plot for potential predictive variables",
+           lab_size = 3)
+
+```
+
+
+
+
 - Map of percent of houses with incomplete plumbing  across regions
+
+```{r map of holc zones with ICplumb stlouis}
+data_clean|>
+  dplyr::filter(city == "St. Louis")|>
+  ggplot()+
+  geom_sf(aes(fill= pct_incomplete_plumb))+
+  scale_fill_stepsn(
+    colors = c(
+      "#F7FCF0",
+  "#E0F3DB",
+  "#CCEBC5",
+  "#A8DDB5",
+  "#7BCCC4",
+  "#4EB3D3",
+  "#2B8CBE",
+  "#0868AC",
+  "#084081"
+    ),
+    breaks = c(0.3, 1.55, 2.79, 4.30, 6.22, 8.88, 12.89, 19.58, 29.59, 55.76),
+    limits = c(0, 55.76),
+    name = "Percentage Incomplete Plumbing"
+  ) +
+  theme_minimal()
+```
+
+```{r map of holc zones with ICplumb buffalo}
+data_clean|>
+  dplyr::filter(city == "Buffalo")|>
+  ggplot()+
+  geom_sf(aes(fill= pct_incomplete_plumb))+
+  scale_fill_stepsn(
+    colors = c(
+      "#F7FCF0",
+  "#E0F3DB",
+  "#CCEBC5",
+  "#A8DDB5",
+  "#7BCCC4",
+  "#4EB3D3",
+  "#2B8CBE",
+  "#0868AC",
+  "#084081"
+    ),
+    breaks = c(0.3, 1.55, 2.79, 4.30, 6.22, 8.88, 12.89, 19.58, 29.59, 55.76),
+    limits = c(0, 55.76),
+    name = "Percentage Incomplete Plumbing"
+  ) +
+  theme_minimal()
+```
+
+Aside from the missing HOLC polygons, the incomplete plumbing percentages look about right. 
+
 
 Tables:
 
 - Average Marginal Effects of Variables determined by Binary Regression Model
+
+```{r AME table}
+kable(ame, caption = "Average Marginal Effects of Variables as Determined by Binary Regression Model") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                full_width = FALSE, 
+                position = "center") |>
+  row_spec(0, bold = TRUE, background = "#f2f2f2") 
+```
+
 - The Number of Each Grade Polygon in Each Data Set
+
+```{r number of polygons}
+totals_by_grade<-data_clean |>
+  dplyr::filter(holc_grade %in% c("A", "B", "C", "D")) |>
+  group_by(holc_grade) |>
+  summarise(count = n())|> 
+  st_drop_geometry()
+
+colnames(totals_by_grade)<- c("HOLC Grade", "Number of Polygons")
+
+
+og_count_table<- read_csv("results/tables/original/table_2.csv")
+totals_by_grade <- totals_by_grade |>
+  mutate(Original = og_count_table$National[2:5])|>
+  mutate(Difference = `Number of Polygons`- Original)
+
+
+kable(totals_by_grade, caption = "Stylized Table Example") |>
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), 
+                full_width = FALSE, 
+                position = "center") |>
+  row_spec(0, bold = TRUE, background = "#f2f2f2") 
+```
+
+Differences in the number of polygons per grade are seen, with between a 20 and 84 polygon difference between the two datasets. 
+
 
 Supplementary Tables:
 
