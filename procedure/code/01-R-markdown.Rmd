@@ -76,7 +76,7 @@ This reproduction uses the: R packages
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
-packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix", "MASS", "knitr", "kableExtra", "rstatix")
+packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix", "MASS", "knitr", "kableExtra", "rstatix", "ggcorrplot")
 
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
@@ -657,7 +657,7 @@ data_clean|>
     values = c("green","blue", "yellow", "red")) +
   theme_minimal()
 ```
-This map is somewhat different than Sterling's map, revealing one of the potential reasons behind differing values in our AME and other various comparisons. A different set of HOLC polygons is mapped in this version than in Sterling's results, but despite us ending up with MORE polygons in our analysis total, we seem to be missing several of the holc zones/sections of the map. 
+This map is somewhat different than Sterling's map, revealing one of the potential reasons behind differing values in our AME and other various comparisons. A different set of HOLC polygons is mapped in this version than in Sterling's results, but despite us ending up with MORE polygons in our analysis total, we seem to be missing several of the holc zones/sections of the map.
 
 I will map another city to make test and see if this is widespread. 
 
@@ -677,16 +677,19 @@ The map of buffalo is much more intact, with only one or two sections across the
 - Correlation plot for potential predictive variables
 
 ```{r correlation table}
-corr_matrix <- cor(data_clean_selected, use = "complete.obs")
+cor_matrix <- data_clean_selected |>
+  mutate(
+    holc_gradeA = as.numeric(holc_grade == "A"),
+    holc_gradeB = as.numeric(holc_grade == "B"),
+    holc_gradeC = as.numeric(holc_grade == "C"),
+    holc_gradeD = as.numeric(holc_grade == "D")
+  ) |>
+  dplyr::select(-holc_grade) |>
+  cor(use = "complete.obs")
 
-ggcorrplot(corr_matrix, 
-           method = "square", 
-           type = "lower", 
-           lab = TRUE, 
-           colors = c("blue", "white", "red"),
-           title = "Correlation plot for potential predictive variables",
-           lab_size = 3)
-
+ggcorrplot(cor_matrix, lab = TRUE, lab_size = 3, 
+           colors = c("red", "white", "blue"), 
+           title = "Correlation Matrix with HOLC Grade Dummies")
 ```
 
 
@@ -783,19 +786,6 @@ kable(totals_by_grade, caption = "Stylized Table Example") |>
 ```
 
 Differences in the number of polygons per grade are seen, with between a 20 and 84 polygon difference between the two datasets. 
-
-
-Supplementary Tables:
-
-- The results of the Dunn Test to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades
-- The average % for each predictive variable broken down by HOLC grade and region
-- AME Table for the Nation using the average 2.61168 as the threshold for the binary variable
-
-National Data Tables
-- AME Table for the Northeast region using the average 1.447623 as the threshold for the binary variable
-- AME Table for the South region using the average 3.414391 as the threshold for the binary variable
-- AME Table for the Midwest region using the average 3.756471 as the threshold for the binary variable
-- AME Table for the West region using the average 0.7836609 as the threshold for the binary variable
 
 # Discussion
 
