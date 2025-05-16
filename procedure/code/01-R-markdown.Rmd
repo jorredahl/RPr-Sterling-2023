@@ -518,7 +518,7 @@ kbl(test1) %>%
 Then, use the Dunn Test in the to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades and compared with supplementary table 1.
 
 ```{r dunn test}
-Dunntest<- dunn_test(pct_incomplete_plumb ~ holc_grade, data = data_clean) #dunn test
+Dunntest<- dunn_test(pct_incomplete_plumb ~ holc_grade, data = data_clean |> st_drop_geometry()) #dunn test
 Dunntest<-Dunntest|>
   mutate(
     Comparison = paste(group1, "-", group2),
