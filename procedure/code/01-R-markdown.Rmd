@@ -70,14 +70,16 @@ reaggregation, which considers AWR "the simplest form of areal interpolation", a
 
 ## Computational environment
 
-This reproduction uses the: R packages
+This reproduction uses the following R packages
 
-```{r environment-setup, include = FALSE}
+```{r environment-setup}
 # record all the packages you are using here
 # this includes any calls to library(), require(),
 # and double colons such as here::i_am()
 packages <- c("tidyverse", "here", "tidycensus", "margins", "sf", "tigris", "rstatix", "MASS", "knitr", "kableExtra", "rstatix", "ggcorrplot")
+```
 
+```{r enviroment 2, include = FALSE}
 # force all conflicts to become errors
 # if you load dplyr and use filter(), R has to guess whether you mean dplyr::filter() or stats::filter()
 # the conflicted package forces you to be explicit about this
@@ -193,7 +195,7 @@ if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exi
 
 *Unplanned Deviation* This study uses block group-level data for the foreign-born population. However, the ACS datasets have no information about place-of-birth at this level. Instead, data for foreign-born population percentage is gathered at the tract level.
 
-```{r ud-tract-acs}
+```{r ud-tract-acs, message=FALSE, warning=FALSE, include=FALSE}
 if (!file.exists(here('data','raw','public','acs_censusblock.gpkg')) & !file.exists(here('data','raw','public','acs_tract.gpkg'))) {
   all_geo_t <- list()
   
@@ -331,7 +333,7 @@ Choosing individual HOLC polygons as the study's resolution increases the threat
 
 First, remap ACS values from block groups to HOLC polygons through areal interpolation, likely actually area-weighted reaggregation. 
 
-```{r intersection sf}
+```{r intersection sf, warning=FALSE}
 if (!file.exists(here('data','raw','public','acs_censusblock_intersected.gpkg'))) {
   cb_intersects <- cb_intersects |>
   mutate(area = st_area(geom),
@@ -388,7 +390,7 @@ if (!file.exists(here('data','raw','public','acs_censusblock_intersected.gpkg'))
 }
 ```
 
-```{r area-weighted reaggregation}
+```{r area-weighted reaggregation, message=FALSE, warning=FALSE}
 cb_clipped <- st_read(here('data', 'raw', 'public', 'acs_censusblock_intersected.gpkg'))
 
 cb_clipped <- cb_clipped |>
@@ -408,8 +410,6 @@ HOLC_polygons <- scaled_cb_clipped %>%
   summarize(across(3:62, sum, na.rm = TRUE),       
             geometry = st_union(geom)) %>%     
   ungroup()
-
-plot(HOLC_polygons)
 ```
 
 After performing AWR on the HOLC polygons, we are left with significantly less geometries than we started with (10154 originally vs. 9614 after re-aggregation). This will come into play later down the road. 
@@ -417,17 +417,14 @@ After performing AWR on the HOLC polygons, we are left with significantly less g
 Using census statistics from the ACS dataset, resulting calculated assigned variables are: Black Population %, White Population %, Indigenous American %, Asian  Population %, Hispanic or Latino Population %, % Below Poverty Line, % Housing Units Owned, % Housing Units Rented, % Mobile Homes, % Homes before 1980, % Homes after 1980, % With Complete Plumbing, % With Incomplete Plumbing, and % Foreign Born. This data is separated by region as well as collected nationally. Using regional and national averages for plumbing rates, a binary variable is calculated on whether plumbing is below or above the average.
 
 
-```{r bianary creation and cleaning}
+```{r bianary creation and cleaning, echo=TRUE}
 HOLC_polygons <- HOLC_polygons |>
   mutate(
     water_access = case_when(
       `ic_plumbE` > 2.61668 ~ 1,
       TRUE ~ 0
     )
-  )#assigning a binary variable to plumbing access- 1 if the incomplete plumbing percentage is higher than the national average, 0 if it is lower than the national average. 
-
-
-
+  ) #assigning a binary variable to plumbing access- 1 if the incomplete plumbing percentage is higher than the national average, 0 if it is lower than the national average. 
 
 
 data_clean <- HOLC_polygons |>
@@ -449,7 +446,6 @@ data_clean <- HOLC_polygons |>
     pct_incomplete_plumb = (ic_plumbE / total_hu_plumbE) * 100,
     water_access = water_access
   )
-
 ```
 
 Data will now be verified using the supplementary tables by subtracting the national summary statistics table from the calculated table, which should result in zeros across the board. 
@@ -458,8 +454,7 @@ This is somewhat of a test of whether the authors actually did in fact use area 
 
 The total number of observations in the summary statistics tables is 8878, 736 less than our AWI results. While we lost some  polygons through the scaling, the original authors, using a python package, lost many more than we did. It'll be interesting to see how different results are, as this is likely the cause of much of the potential difference between the datasets. 
 
-
-```{r test AWI}
+```{r test AWI, message=FALSE, warning=FALSE}
 
 #sd_midwest<- read_csv("data/derived/public/original/sd_midwest.csv")
 #sd_northeast<- read_csv("data/derived/public/original/sd_northeast.csv")
@@ -517,7 +512,7 @@ kbl(test1) %>%
 
 Then, use the Dunn Test in the to determine whether incomplete plumbing % in Grade A is significantly different than the other Grades and compared with supplementary table 1.
 
-```{r dunn test}
+```{r dunn test, warning=FALSE, message= FALSE}
 Dunntest<- dunn_test(pct_incomplete_plumb ~ holc_grade, data = data_clean |> st_drop_geometry()) #dunn test
 Dunntest<-Dunntest|>
   mutate(
@@ -539,7 +534,7 @@ kbl(test2) %>%
   column_spec(1, bold = TRUE) 
 ```
 
-The Dunn test result is extremely different, with the test Z statistic consistently negative in the original Dunn results and consistently positive, almost to the same degree. All of the pairwise differences are still statistically significant, which matches the findings of the original authors. 
+The Dunn test result is significanty different, with the test Z statistic consistently negative in the original Dunn results and consistently positive, almost to the same degree. All of the pairwise differences are still statistically significant, which matches the findings of the original authors. 
 
 ## Analysis
 
@@ -606,7 +601,7 @@ Sterling calculates Average Marginal Effects (AME) using the $margins$ package t
 ame <- margins(final_model) |>
   summary() |>
   dplyr::filter(!(factor %in% c("holc_grade", "holc_grade ", "holc_gradeA ", "holc_gradeC ", "holc_gradeE", "holc_gradeF", "white_pct"))) |>
-  mutate(factor = case_when(factor == "asian_pct"~"Asian population percent",
+  mutate(Factor = case_when(factor == "asian_pct"~"Asian population percent",
                            factor == "black_pct"~"Black population percent",
                            factor == "hispan_Latino_pct"~"Hispanic or Latino population percent",
                            factor == "holc_gradeB"~"HOLC B",
@@ -635,9 +630,9 @@ Here the difference is very noticeable among race/ethnicity related data and pov
 
 # Results
 
-Data is presented as 3 figures, 2 tables, and 7 supplementary tables. We'll reproduce each figure and note differences between our reproduction and the figures from the original table. 
+Data is presented as 3 figures, 2 tables, and 7 supplementary tables. We'll reproduce each figure and table and note differences between our reproduction and the figures from the original manuscript.  
 
-Figures:
+#### Figures:
 
 - Map of HOLC grades for different cities across regions. Sterling presents maps of St. Louis, Buffalo, Oakland, and Birmingham. We choose to only recreate one of the four, St. Louis, trusing that if it matches others also likely do too.
 
@@ -657,9 +652,11 @@ data_clean|>
     values = c("green","blue", "yellow", "red")) +
   theme_minimal()
 ```
+
+
 This map is somewhat different than Sterling's map, revealing one of the potential reasons behind differing values in our AME and other various comparisons. A different set of HOLC polygons is mapped in this version than in Sterling's results, but despite us ending up with MORE polygons in our analysis total, we seem to be missing several of the holc zones/sections of the map.
 
-I will map another city to make test and see if this is widespread. 
+We will map another city to test and see if this is a widespread phenomenon. 
 
 ```{r buffalo}
 data_clean|>
@@ -672,11 +669,12 @@ data_clean|>
   theme_minimal()
 ```
 
-The map of buffalo is much more intact, with only one or two sections across the city missing. The source of this loss is random- it could have to do with our multipart to single part transformation, the removal of broken geometries (of which we had more in r than in ArcGIS), or somewhere in our AWR step. 
+The map of buffalo is much more intact, with only one or two sections across the city missing. The source of this loss is random- it could have to do with our multipart to single part transformation, the removal of broken geometries (of which we had more in r than in ArcGIS), or somewhere in our AWR step. Given that this effected multiple cities, it's likely that it is a widespread issue.
+
 
 - Correlation plot for potential predictive variables
 
-```{r correlation table}
+```{r correlation table 2}
 cor_matrix <- data_clean_selected |>
   mutate(
     holc_gradeA = as.numeric(holc_grade == "A"),
@@ -692,10 +690,10 @@ ggcorrplot(cor_matrix, lab = TRUE, lab_size = 3,
            title = "Correlation Matrix with HOLC Grade Dummies")
 ```
 
+This finds the same results as the original study, with the only two extremely correlated variables being the white and black population percentages.
 
 
-
-- Map of percent of houses with incomplete plumbing  across regions
+- Map of percent of houses with incomplete plumbing across regions
 
 ```{r map of holc zones with ICplumb stlouis}
 data_clean|>
@@ -745,10 +743,10 @@ data_clean|>
   theme_minimal()
 ```
 
-Aside from the missing HOLC polygons, the incomplete plumbing percentages look about right. 
+Aside from the missing HOLC polygons, the incomplete plumbing percentages appear to have similar percentages to the figures in the original manuscript. 
 
 
-Tables:
+#### Tables:
 
 - Average Marginal Effects of Variables determined by Binary Regression Model
 
@@ -762,7 +760,7 @@ kable(ame, caption = "Average Marginal Effects of Variables as Determined by Bin
 
 - The Number of Each Grade Polygon in Each Data Set
 
-```{r number of polygons}
+```{r number of polygons, message=FALSE}
 totals_by_grade<-data_clean |>
   dplyr::filter(holc_grade %in% c("A", "B", "C", "D")) |>
   group_by(holc_grade) |>
@@ -772,7 +770,8 @@ totals_by_grade<-data_clean |>
 colnames(totals_by_grade)<- c("HOLC Grade", "Number of Polygons")
 
 
-og_count_table<- read_csv("results/tables/original/table_2.csv")
+og_count_table<- read_csv(here("results","tables","original","table_2.csv"))
+                          
 totals_by_grade <- totals_by_grade |>
   mutate(Original = og_count_table$National[2:5])|>
   mutate(Difference = `Number of Polygons`- Original)
@@ -785,13 +784,16 @@ kable(totals_by_grade, caption = "Stylized Table Example") |>
   row_spec(0, bold = TRUE, background = "#f2f2f2") 
 ```
 
+
 Differences in the number of polygons per grade are seen, with between a 20 and 84 polygon difference between the two datasets. 
 
 # Discussion
 
-Sterling III hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. The study finds evidence for this hypothesis.
-
-A successful reproduction would confirm this hypothesis with similar derived values to those found in the original study.
+Sterling III hypothesizes that areas of present-day incomplete plumbing within U.S. cities (i.e., communities with a proportion of homes lacking complete plumbing above the national average) are significantly associated with HOLC neighborhood designations. 
+The study finds evidence for this hypothesis, with lower HOLC grades correlated with higher levels of incomplete household plumbing. That being said, despite following the original study's listed methods, we found numerically different results. 
+The most likely cause of this is the differing intial HOLC geometries between our study and the original, as seen the first figure of our results section. We went to great lengths to repair the HOLC geometries in R, but ended up with an interesting subset of the polygons remaining. 
+Geometry issues are obviously compounding, as census data aggregated into incorrect polygons will result in incorrect summary statistics.
+This seems to be an R/SF issue; when loading the geometries into either ArcGIS or QGIS there are only 2 geometries that need repairing. While we're not sure exactly what caused this issue, it's worth keeping in mind for future reproductions. 
 
 # Integrity Statement
 
@@ -803,8 +805,8 @@ This report is based upon the template for Reproducible and Replicable Research 
 
 # References
 
-> Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). DOI:[10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
+Sterling III, Charles W., et al. "Connections between present-day water access and historical redlining." Environmental Justice (2023). DOI:[10.1089/env.2022.0115](https://doi.org/10.1089/env.2022.0115)
 
-> Shiloh Deitz and Katie Meehan. “Plumbing Poverty: Mapping Hot Spots of Racial and Geographic Inequality in U.S. Household Water Insecurity.” Annals of the American Association of Geographers 109 (2019): 1092–1109.
+Shiloh Deitz and Katie Meehan. “Plumbing Poverty: Mapping Hot Spots of Racial and Geographic Inequality in U.S. Household Water Insecurity.” Annals of the American Association of Geographers 109 (2019): 1092–1109.
 
-> Tyler Fricker and Douglas L. Allen. “A Place-Based Analysis of Tornado Activity and Casualties in Shreveport, Louisiana.” Natural Hazards 113 (2022): 1853–1874.
+Tyler Fricker and Douglas L. Allen. “A Place-Based Analysis of Tornado Activity and Casualties in Shreveport, Louisiana.” Natural Hazards 113 (2022): 1853–1874.
